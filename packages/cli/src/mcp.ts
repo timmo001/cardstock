@@ -24,6 +24,7 @@ import type { HttpClient } from "effect/http";
 import {
   CardstockError,
   cardLink,
+  cardRead,
   cardShuffle,
   status,
   templateList,
@@ -64,8 +65,16 @@ const Status = bareTool("status", "Whether the server answers, and its version")
 
 const CardLink = tool(
   "card_link",
-  "The card's link, with the whole card sealed in it and stored nowhere, from a spec given as JSON text. Whoever holds the link can open the card. Its pictures, video and music load from their web addresses",
+  "The card's link, with the whole card sealed in it and stored nowhere, from a spec given as JSON text. Whoever holds the link can open the card. Its pictures, video and music load from their web addresses. edit is the same card opened in the web app's editor as a new card, for the user to carry on with",
   specField,
+)
+  .annotate(Tool.Readonly, true)
+  .annotate(Tool.Destructive, false);
+
+const CardRead = tool(
+  "card_read",
+  "The spec of the card sealed in a link, to change and pass to card_link for a new link. A link already sent can't change",
+  { link: Schema.String },
 )
   .annotate(Tool.Readonly, true)
   .annotate(Tool.Destructive, false);
@@ -132,6 +141,7 @@ const PresetSave = tool(
 const Tools = Toolkit.make(
   Status,
   CardLink,
+  CardRead,
   MediaAdd,
   CardShuffle,
   CardExport,
@@ -170,6 +180,7 @@ const handlers = Effect.gen(function* () {
       ),
     status: () => run(status()),
     card_link: ({ spec }: { readonly spec: string }) => run(cardLink(spec)),
+    card_read: ({ link }: { readonly link: string }) => cardRead(link),
     template_list: () => Effect.succeed(templateList()),
     card_shuffle: (input: ShuffleOptions) => cardShuffle(input),
     card_export: ({

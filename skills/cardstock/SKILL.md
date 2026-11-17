@@ -35,7 +35,7 @@ Prefer the `cardstock` Code Mode namespace (`cardstock agent tools --json` lists
 
    A video (MP4 or WebM) plays, muted and looping, wherever a picture would, and its sound follows the card's sound button. A picture or video becomes the front, a sound the music; `--as inside` puts a picture inside instead, and `--as background` fills the page behind the card with a picture or looping video, dimmed a little, in the viewer and in saved files; to use the front's own file there too, set `background` to its media id in the spec. `--fit` says where a picture sits: `frame` (in the design's frame on the front, framed on the inside cover inside; the default), `fill` (the whole front with the title in light ink over it, or the whole inside cover; best for photos) or `behind` (washed into the paper, with the design or the message printed over it). Adding another replaces the one before and keeps the card's fit unless `--fit` changes it. For more than one picture, `--as picture --on front|left|right` lays one more over the rest instead (`left` is the inside cover, `right` the page with the message), with its own `--fit`; run it once per picture, as later ones lie on top. Boxed pictures on one page share the box, and a page plays one video at a time.
 
-5. `card link --file <spec file> --json` seals the whole card into its `url`. Give the user that link to send. Whoever has it can open the card, and it can't be stopped or changed after; to change a card, change the spec and make a new link.
+5. `card link --file <spec file> --json` seals the whole card into its `url`. Give the user that link to send. Whoever has it can open the card, and it can't be stopped or changed after; to change a card, change the spec and make a new link. Its `edit` is the same card opened in the web app's editor as a new card: give it to the user when they want to carry on there, or open it yourself to use the editor's tools (see In the browser).
 6. When the user wants to send the card in a chat as a file rather than a link, `export --file <spec file> --out <folder> --json` saves a PNG of the front, and an MP4 and a GIF of it opening; `--still`, `--mp4` or `--gif` picks only those. Give the user the paths it returns.
 
 ## Presets
@@ -57,7 +57,7 @@ Only `version` and `name` are needed. Saving under a name that's taken (ignoring
 
 ## Changing a card
 
-A link already sent can't change. To change a card, edit its spec and make a new link with `card link`. Someone with only the link can open it in the web app and use **Edit a copy**.
+A link already sent can't change. To change a card, edit its spec and make a new link with `card link`. Given only a card's link, `card read --link <link> --json` gives its `spec` to start from. Someone with only the link can also open it in the web app and use **Edit a copy**.
 
 ## In the browser
 
@@ -66,7 +66,7 @@ The Cardstock web app's card editor offers WebMCP tools that change the card the
 They're there only in a browser that offers WebMCP, either built in (turned on in its flags) or added by an extension, and only while the editor is open:
 
 - As an agent in the user's browser, the tools are already yours.
-- As an agent on the user's computer that drives their browser, open `https://cards.timmo.dev/cards/new` in a tab (`?template=<id>` starts from a ready-made card). If your browser tool reads a page's WebMCP tools, list them there and call each by name with its input as JSON. Otherwise, run script in the page: `await document.modelContext.getTools()` lists them, and `await document.modelContext.executeTool(tool, input)` runs one and returns its answer as JSON text, with the words in `content[0].text`.
+- As an agent on the user's computer that drives their browser, open `https://cards.timmo.dev/cards/new` in a tab (`?template=<id>` starts from a ready-made card, and `card link`'s `edit` from a whole card of yours). If your browser tool reads a page's WebMCP tools, list them there and call each by name with its input as JSON. Otherwise, run script in the page: `await document.modelContext.getTools()` lists them, and `await document.modelContext.executeTool(tool, input)` runs one and returns its answer as JSON text, with the words in `content[0].text`.
 - When the page has no `document.modelContext`, the browser doesn't offer WebMCP: use the CLI, and give the user the card's link, where **Edit a copy** opens it in the editor if they want to carry on there.
 
 `save` keeps the card in that browser, and `export` downloads the file there, so tell the user where to find it.

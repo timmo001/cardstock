@@ -30,7 +30,9 @@ words and picks the pictures, and the card travels in its link.
 ## What it covers
 
 The manifest, the MCP server and the skill cover putting cards in their
-links, pictures and music by web address, exports and presets.
+links and reading them back, pictures and music by web address, exports and
+presets. A card's link comes with its address in the editor, so an agent can
+hand a card it made to you, or to an agent in your browser, to carry on with.
 
 ## In the browser
 

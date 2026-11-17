@@ -23,6 +23,7 @@ import {
   type OpeningValue,
   openings,
   newMediaId,
+  openWholeCardUrl,
   PictureFit,
   type PicturePage,
   templateById,
@@ -1127,11 +1128,25 @@ const program = async () => {
 
   const search = new URLSearchParams(location.search);
 
-  // Edit a copy starts from the card the viewer left
-  const copy =
-    isNew && search.has("copy")
+  // Edit a copy starts from the card the viewer left, and an editor address
+  // from the CLI from the card sealed in its fragment, which then leaves the
+  // address bar so the card's key doesn't linger in it
+  const sealed = isNew && location.hash.length > 1 ? location.hash : "";
+
+  if (sealed !== "")
+    history.replaceState(null, "", location.pathname + location.search);
+
+  const copy = !isNew
+    ? undefined
+    : search.has("copy")
       ? Option.getOrUndefined(await Effect.runPromise(takeCopy))
-      : undefined;
+      : sealed === ""
+        ? undefined
+        : Option.getOrUndefined(
+            await Effect.runPromise(
+              openWholeCardUrl(`${location.origin}/c${sealed}`),
+            ),
+          );
 
   if (copy !== undefined) await startFrom(copy);
 

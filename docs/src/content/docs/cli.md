@@ -13,6 +13,7 @@ command that returns data takes `--json`.
 | `cardstock template list`              | The ready-made cards on the app's Browse page     |
 | `cardstock card shuffle`               | A random card for `--occasion` and `--tone`       |
 | `cardstock card link`                  | The card's link, with the whole card sealed in it |
+| `cardstock card read --link <link>`    | The spec of the card in a link, to change         |
 | `cardstock media add --url <address>`  | Adds a picture, video or sound from the web       |
 | `cardstock preset save`, `preset list` | Starting points for new cards, on this device     |
 | `cardstock export`                     | Saves a card with `--still`, `--mp4` or `--gif`   |
@@ -33,6 +34,13 @@ one running locally.
 its link and prints it, with nothing stored anywhere. Whoever has the link can
 open the card, and it can't be stopped or changed once it's sent: change the
 spec and make a new link instead. See [Links and privacy](/links-and-privacy).
+
+It prints the card's address in the editor too, `edit` in its JSON: the same
+sealed card, opened in the web app as a new card to carry on with there.
+The editor takes the card out of the address as it opens it.
+
+`cardstock card read --link <link>` opens the card sealed in a link and
+prints its spec, to change and make a new link from.
 
 ## Status
 

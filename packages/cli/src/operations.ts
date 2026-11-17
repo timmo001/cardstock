@@ -1,7 +1,8 @@
 /**
  * What the CLI and the MCP server can do, as Effect operations that return
  * plain data: list the ready-made templates, shuffle a card, put a card in
- * its link, and say whether the server answers. A card is a spec, JSON you
+ * its link and read one back, and say whether the server answers. A card is
+ * a spec, JSON you
  * keep where you like; it goes out only as its link, with the whole card
  * sealed in it, so nothing is stored anywhere and there's nothing to sign
  * in to.
@@ -9,6 +10,7 @@
 import {
   decodeCard,
   missingMedia,
+  openWholeCardUrl,
   type ShuffleOptions,
   shuffleCard,
   templates,
@@ -100,7 +102,23 @@ export const cardLink = Effect.fn("cardLink")(function* (spec: string) {
     Effect.mapError(() => fail("That card doesn't go into a link")),
   );
 
-  return { occasion: card.occasion, url };
+  // The same sealed card, opened in the editor as a new card to carry on with
+  const edit = url.replace(/\/c#/u, "/cards/new#");
+
+  return { occasion: card.occasion, url, edit };
+}, Effect.mapError(describe));
+
+/** The spec of the card sealed in a link, to change and make a new link from. */
+export const cardRead = Effect.fn("cardRead")(function* (link: string) {
+  const opened = yield* openWholeCardUrl(link.trim());
+
+  if (Option.isNone(opened)) {
+    return yield* fail(
+      "That isn't a card's link, or it's been cut short: it should end /c# and a long code",
+    );
+  }
+
+  return { occasion: opened.value.occasion, spec: opened.value };
 }, Effect.mapError(describe));
 
 /** Whether the server answers, and which version. */

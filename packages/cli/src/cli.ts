@@ -19,6 +19,7 @@ import { serveMcp } from "./mcp.ts";
 import {
   CardstockError,
   cardLink,
+  cardRead,
   cardShuffle,
   status,
   templateList,
@@ -94,11 +95,29 @@ const linkCard = Command.make(
   Effect.fn("linkCard")(function* ({ json, spec, file }) {
     const made = yield* cardLink(yield* readSpec({ spec, file }));
 
-    yield* show(json, made, (done) => [done.url]);
+    yield* show(json, made, (done) => [done.url, `Edit: ${done.edit}`]);
   }),
 ).pipe(
   Command.withDescription(
-    "The card's link, with the whole card sealed in it and stored nowhere",
+    "The card's link, with the whole card sealed in it and stored nowhere, and its address in the editor",
+  ),
+);
+
+const readCard = Command.make(
+  "read",
+  {
+    json,
+    link: Flag.String("link").pipe(
+      Flag.withDescription("A card's link, from card link or the app"),
+    ),
+  },
+  // Always JSON, since a spec is; `--json` is taken so every data command has it
+  Effect.fn("readCard")(function* ({ link }) {
+    yield* Console.log(JSON.stringify(yield* cardRead(link), null, 2));
+  }),
+).pipe(
+  Command.withDescription(
+    "The spec of the card sealed in a link, to change and make a new link from",
   ),
 );
 
@@ -139,8 +158,10 @@ const shuffle = Command.make(
 );
 
 const card = Command.make("card").pipe(
-  Command.withDescription("Shuffle a card, and put a card spec in its link"),
-  Command.withSubcommands([linkCard, shuffle]),
+  Command.withDescription(
+    "Shuffle a card, put a card spec in its link, and read one back",
+  ),
+  Command.withSubcommands([linkCard, readCard, shuffle]),
 );
 
 const mediaAddCommand = Command.make(
@@ -383,7 +404,12 @@ const operations = [
   ["status", "Show whether the server answers, and its version", "read"],
   [
     "card link",
-    "The card's link, with the whole card sealed in it and stored nowhere (--spec JSON or --file)",
+    "The card's link, with the whole card sealed in it and stored nowhere, and its address in the editor (--spec JSON or --file)",
+    "read",
+  ],
+  [
+    "card read",
+    "The spec of the card sealed in a link (--link), to change and make a new link from",
     "read",
   ],
   [

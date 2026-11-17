@@ -27,15 +27,19 @@ The app has:
   to narrow them by category, occasion, tone (funny, cheeky, punny, dry,
   heartfelt or sweet) and design. The filters stay as you left them.
   **Shuffle** starts a new card picked at random.
-- **Card:** a live preview with the words, picture, design, effect and music.
+- **Card:** a live preview beside the form, which is grouped by the part of
+  the card each control changes: **Front** (its title and picture),
+  **Inside** (who it's to, the message, who it's from and a picture),
+  **Page and sound** (the background behind the card, music and Links on the
+  back) and **Looks** (design, colours, effect, size and how it opens).
   **Shuffle** under the occasion picks a new design, colourway, effect and
   words that suit it, in any tone or the one you pick (funny, cheeky, punny,
   dry, heartfelt or sweet), keeping who it's to and from.
   Pictures, video and music go on with **From a link**: paste the public web
-  address of one, and the card loads it from there. Under them, a link opens
-  [Where to find pictures](/pictures). **Links on the back**, off unless you
-  turn it on, lists the web addresses the card's files load from, small on its
-  back. **Save for a chat** under the preview makes a picture of the front
+  address of one, and the card loads it from there. Under the front's picture,
+  a link opens [Where to find pictures](/pictures). **Links on the back**, off
+  unless you turn it on, lists the web addresses the card's files load from,
+  small on its back. **Save for a chat** under the preview makes a picture of the front
   (PNG), or a video (MP4) or GIF of the card opening, and shares it on a phone
   or downloads it elsewhere.
 - **Link:** **Card in a link** seals the whole card into its link, stored

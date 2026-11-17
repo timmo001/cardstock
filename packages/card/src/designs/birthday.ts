@@ -8,7 +8,7 @@ import { defineDesign } from "./define.ts";
 import { confetti, flourish, seeded, star } from "./ornaments.ts";
 import {
   back,
-  cover,
+  coverShared,
   fill,
   foiled,
   frontPicture,
@@ -80,18 +80,23 @@ export const birthday = defineDesign({
           );
         }
       });
-    } else if (picture.framed !== undefined) {
+    } else if (picture.framed.length > 0) {
       confetti(front.colour, front, inks, 40, 7);
-      cover(front.colour, picture.framed, {
-        x: width / 2 - unit * 0.38,
-        y: unit * 0.12,
-        width: unit * 0.76,
-        height: height * 0.5,
-      });
+      coverShared(
+        front.colour,
+        picture.framed,
+        {
+          x: width / 2 - unit * 0.38,
+          y: unit * 0.12,
+          width: unit * 0.76,
+          height: height * 0.5,
+        },
+        unit * 0.02,
+      );
     }
 
     const end = title(front, build, {
-      top: picture.framed === undefined ? height * 0.6 : height * 0.68,
+      top: picture.framed.length === 0 ? height * 0.6 : height * 0.68,
       largest: Math.round(unit * 0.14),
       weight: 800,
       ink: colours.ink,

@@ -10,12 +10,15 @@ import {
   decodeCard,
   encodeCard,
   generateKey,
+  layersOf,
   makeCard,
   type MediaSource,
+  missingMedia,
   occasionNames,
   open,
   openText,
   openWholeCardUrl,
+  pictureMedia,
   sealText,
   shuffleCard,
   templates,
@@ -194,5 +197,57 @@ describe("card", () => {
     expect(credits(on)).toEqual([
       { text: "example.com/tree.jpg", url: "https://example.com/tree.jpg" },
     ]);
+  });
+
+  test("a card's pictures lay in order, after the ones older cards name", async () => {
+    const id = (letter: string) => letter.repeat(22);
+
+    const media = ["A", "B", "C", "D"].map((letter) => ({
+      id: id(letter),
+      kind: "image",
+      type: "image/jpeg",
+      source: WebSource.make({ url: `https://example.com/${letter}.jpg` }),
+    }));
+
+    const card = await run(
+      makeCard({
+        ...spec,
+        // An older card's own front and inside pictures
+        front: { title: "Merry Christmas", image: id("A"), fit: "fill" },
+        inside: { ...spec.inside, image: id("B"), fit: "behind" },
+        pictures: [
+          { image: id("C"), on: "left", fit: "fill" },
+          { image: id("D"), on: "front" },
+        ],
+        media,
+      }),
+    );
+
+    // Compared as plain data, without the ids' brand
+    const laid: unknown = layersOf(card);
+
+    expect(laid).toEqual([
+      { image: id("A"), on: "front", fit: "fill" },
+      { image: id("B"), on: "right", fit: "behind" },
+      { image: id("C"), on: "left", fit: "fill" },
+      { image: id("D"), on: "front" },
+    ]);
+    expect(missingMedia(card)).toEqual([]);
+    expect(pictureMedia(card)).toHaveLength(4);
+
+    // Music can't be laid on a page
+    const music = { ...media[3], kind: "audio", type: "audio/mpeg" };
+
+    const refused = await run(
+      Effect.flip(
+        makeCard({
+          ...spec,
+          pictures: [{ image: id("D"), on: "front" }],
+          media: [music],
+        }),
+      ),
+    );
+
+    expect(refused._tag).toBe("SchemaError");
   });
 });

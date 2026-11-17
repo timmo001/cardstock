@@ -16,7 +16,7 @@ import {
 } from "./ornaments.ts";
 import {
   back,
-  cover,
+  framePictures,
   fill,
   foiled,
   frontPicture,
@@ -125,28 +125,23 @@ export const christmas = defineDesign({
           front.colour.fill();
         }
       }
-    } else if (picture.framed !== undefined) {
-      const box = {
-        x: width / 2 - unit * 0.36,
-        y: unit * 0.14,
-        width: unit * 0.72,
-        height: height * 0.5,
-      };
-
-      cover(front.colour, picture.framed, box);
-      foiled(front, colours.foil, (paint) => {
-        paint.lineWidth = unit * 0.004;
-        paint.strokeRect(
-          box.x - unit * 0.012,
-          box.y - unit * 0.012,
-          box.width + unit * 0.024,
-          box.height + unit * 0.024,
-        );
-      });
+    } else if (picture.framed.length > 0) {
+      framePictures(
+        front,
+        build,
+        picture.framed,
+        {
+          x: width / 2 - unit * 0.36,
+          y: unit * 0.14,
+          width: unit * 0.72,
+          height: height * 0.5,
+        },
+        unit * 0.004,
+      );
     }
 
     const end = title(front, build, {
-      top: picture.framed === undefined ? height * 0.66 : height * 0.68,
+      top: picture.framed.length === 0 ? height * 0.66 : height * 0.68,
       largest: Math.round(unit * 0.105),
       italic: true,
       weight: 400,

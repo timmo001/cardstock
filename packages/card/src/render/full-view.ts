@@ -19,7 +19,7 @@ import {
 } from "three/webgpu";
 import type { Build } from "../designs/define.ts";
 import { paintFullView } from "../designs/full.ts";
-import { placedVideo } from "../designs/paint.ts";
+import { leadPicture, placedVideo } from "../designs/paint.ts";
 
 /** How far in front of the camera the sheet hangs. */
 const depth = 0.5;
@@ -43,7 +43,7 @@ export const buildFullView = (camera: PerspectiveCamera, build: Build) => {
   const fade = uniform(0);
   const videoScale = uniform(new Vector2(1, 1));
   const videoOffset = uniform(new Vector2(0, 0));
-  const picture = build.insideImage ?? build.image;
+  const picture = leadPicture(build);
 
   const videoMap =
     picture !== undefined && "video" in picture

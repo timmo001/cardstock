@@ -5,7 +5,7 @@
  * textures, so a new design needs no 3D code.
  */
 import type { DesignIdValue } from "../registry.ts";
-import type { Card } from "../schema.ts";
+import type { Card, PictureFit, PicturePage } from "../schema.ts";
 
 export type Paint = OffscreenCanvasRenderingContext2D;
 
@@ -77,12 +77,20 @@ export interface MovingPicture {
 /** A picture on the card: a still, or a video. */
 export type Picture = ImageBitmap | MovingPicture;
 
+/** A decoded picture on a page, as a card's layer places it. */
+export interface Placed {
+  readonly picture: Picture;
+  readonly on: PicturePage;
+  readonly fit: PictureFit;
+}
+
 export interface Build {
   readonly card: Card;
-  /** The front's picture, once it's decoded, when the card has one. */
-  readonly image: Picture | undefined;
-  /** The inside picture, once it's decoded, when the card has one. */
-  readonly insideImage: Picture | undefined;
+  /**
+   * The card's pictures, once they're decoded, in the order they're laid.
+   * A page shows one video at most: the first one placed on it.
+   */
+  readonly pictures: readonly Placed[];
   readonly colours: Colours;
   readonly fonts: Fonts;
 }

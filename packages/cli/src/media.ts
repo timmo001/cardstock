@@ -6,10 +6,12 @@
  */
 import {
   type Card,
+  layersOf,
   type Media,
   type MediaId,
   newMediaId,
   type PictureFit,
+  type PicturePage,
   WebSource,
 } from "@timmo001/cardstock-card";
 import { Effect, Option, Struct } from "effect";
@@ -82,8 +84,12 @@ const fromUrl = Effect.fnUntraced(function* (address: string) {
   return { type, source: WebSource.make({ url: url.href }) };
 });
 
-/** Where `media add` puts a file: the front or inside picture, the page background or the music. */
-export type MediaAs = "front" | "inside" | "background" | "music";
+/**
+ * Where `media add` puts a file: the front's or the inside's own picture,
+ * one more picture laid over the rest (`picture`, on the page `on` names),
+ * the page background or the music.
+ */
+export type MediaAs = "front" | "inside" | "picture" | "background" | "music";
 
 /** A file's kind from its MIME type: a video shows where a picture would. */
 const kindOf = (type: string): Media["kind"] => {
@@ -98,31 +104,46 @@ const kindNames = {
   audio: "a sound",
 } satisfies { readonly [Kind in Media["kind"]]: string };
 
-/** The file each place on a card shows now. */
+/** The file each place on a card shows now; a laid picture replaces none. */
 const placed = (card: Card) =>
   ({
     front: card.front.image,
     inside: card.inside.image,
+    picture: undefined,
     background: card.background,
     music: card.music,
   }) satisfies { readonly [As in MediaAs]: MediaId | undefined };
 
 /**
- * The card with a new media file set as its front or inside picture, its
- * page background or its music, dropping the one it replaces unless another
- * place still shows it. A picture keeps the fit it had unless a new one is
- * given.
+ * The card with a new media file set as its front or inside picture, laid
+ * over its pictures, or set as its page background or its music, dropping
+ * the one it replaces unless another place still shows it. A picture keeps
+ * the fit it had unless a new one is given.
  */
 const withMedia = (
   card: Card,
   media: Media,
   as: MediaAs,
   fit: PictureFit | undefined,
+  on: PicturePage,
 ): Card => {
   const frontFit = fit ?? card.front.fit;
   const insideFit = fit ?? card.inside.fit;
 
-  const pictured = Struct.assign(card, {
+  // Framed is how a laid picture without a fit sits
+  const laid =
+    as === "picture"
+      ? Struct.assign(card, {
+          pictures: [
+            ...(card.pictures ?? []),
+            fit === undefined || fit === "frame"
+              ? { image: media.id, on }
+              : { image: media.id, on, fit },
+          ],
+        })
+      : card;
+
+  const pictured = Struct.assign(laid, {
     front:
       as === "front"
         ? frontFit === undefined
@@ -145,7 +166,11 @@ const withMedia = (
       ? Struct.assign(scored, { background: media.id })
       : scored;
 
-  const shown = new Set(Object.values(placed(updated)));
+  const shown = new Set([
+    ...layersOf(updated).map((layer) => layer.image),
+    updated.background,
+    updated.music,
+  ]);
 
   return Struct.assign(updated, {
     media: [...card.media, media].filter((entry) => shown.has(entry.id)),
@@ -159,6 +184,8 @@ export const mediaAdd = Effect.fn("mediaAdd")(function* (options: {
   readonly as: Option.Option<MediaAs>;
   /** Where a picture sits; it keeps the card's fit without it. */
   readonly fit: Option.Option<PictureFit>;
+  /** The page a laid picture goes on; the front without it. */
+  readonly on: Option.Option<PicturePage>;
 }) {
   const card = yield* readSpecText(options.spec);
   const found = yield* fromUrl(options.url);
@@ -184,6 +211,12 @@ export const mediaAdd = Effect.fn("mediaAdd")(function* (options: {
     kind,
     as,
     replaced: placed(card)[as] ?? null,
-    spec: withMedia(card, media, as, Option.getOrUndefined(options.fit)),
+    spec: withMedia(
+      card,
+      media,
+      as,
+      Option.getOrUndefined(options.fit),
+      Option.getOrElse(options.on, () => "front" as const),
+    ),
   };
 }, Effect.mapError(describe));

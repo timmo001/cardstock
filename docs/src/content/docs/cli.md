@@ -130,5 +130,19 @@ default), `fill` fills the whole front with the title over it, or the whole
 inside cover, and `behind` washes it into the paper behind the design or the
 message.
 
+`--as picture` lays one more picture over the ones already there, rather than
+replacing one, on the page `--on` names: `front`, `left` (the inside cover) or
+`right` (the page with the message). Run it again for each picture; later
+ones lie on top. With `--fit frame`, boxes on one page share it, and on the
+right page they sit in a band above the message. A page plays one video at a
+time. In the spec they're the card's `pictures`:
+
+```json
+"pictures": [
+  { "image": "<media id>", "on": "front", "fit": "fill" },
+  { "image": "<media id>", "on": "right" }
+]
+```
+
 When the site won't let other sites load its files, the app fetches it
 through the Cardstock server instead, behind a Turnstile check.

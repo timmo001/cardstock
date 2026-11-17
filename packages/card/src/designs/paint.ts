@@ -3,9 +3,16 @@
  * if written by hand, and the credits on the back. Designs paint their own
  * fronts and liners with these, and most share the inside and the back.
  */
-import { credits } from "../schema.ts";
+import { credits, type PicturePage } from "../schema.ts";
 import { sizeDimensions } from "../size.ts";
-import type { Build, Face, MovingPicture, Paint, Picture } from "./define.ts";
+import type {
+  Build,
+  Face,
+  MovingPicture,
+  Paint,
+  Picture,
+  Placed,
+} from "./define.ts";
 import { seeded } from "./ornaments.ts";
 
 /**
@@ -166,55 +173,164 @@ export const cover = (
   );
 };
 
-/** Whether the front's picture fills it edge to edge, with the title over it. */
+interface Box {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** The pictures placed on one page, in the order they're laid. */
+export const picturesOn = (build: Build, page: PicturePage) =>
+  build.pictures.filter((placed) => placed.on === page);
+
+/**
+ * The picture a full view shows behind its words: the first one inside, or
+ * the front's when there's none inside.
+ */
+export const leadPicture = (build: Build): Picture | undefined =>
+  (
+    build.pictures.find((placed) => placed.on !== "front") ??
+    build.pictures.at(0)
+  )?.picture;
+
+/**
+ * Splits a box into `count` equal boxes with `gap` between them: in a row
+ * when the box is wider than tall, otherwise in a column.
+ */
+export const shareBox = (
+  box: Box,
+  count: number,
+  gap: number,
+): readonly Box[] => {
+  const across = box.width > box.height;
+  const room = (across ? box.width : box.height) - gap * (count - 1);
+  const size = room / count;
+
+  return Array.from({ length: count }, (_, index) =>
+    across
+      ? { ...box, x: box.x + index * (size + gap), width: size }
+      : { ...box, y: box.y + index * (size + gap), height: size },
+  );
+};
+
+/** Sets each picture in its share of a box, cropped to fill it. */
+export const coverShared = (
+  paint: Paint,
+  pictures: readonly Picture[],
+  box: Box,
+  gap: number,
+) => {
+  for (const [index, each] of shareBox(box, pictures.length, gap).entries()) {
+    const picture = pictures[index];
+
+    if (picture !== undefined) cover(paint, picture, each);
+  }
+};
+
+/**
+ * Sets each picture in its share of a box, each under a fine foil rule, as
+ * a design frames its pictures.
+ */
+export const framePictures = (
+  face: Face,
+  build: Build,
+  pictures: readonly Picture[],
+  box: Box,
+  rule: number,
+) => {
+  for (const [index, each] of shareBox(
+    box,
+    pictures.length,
+    rule * 6,
+  ).entries()) {
+    const picture = pictures[index];
+
+    if (picture === undefined) continue;
+
+    cover(face.colour, picture, each);
+    foiled(face, build.colours.foil, (paint) => {
+      paint.lineWidth = rule;
+      paint.strokeRect(
+        each.x - rule * 3,
+        each.y - rule * 3,
+        each.width + rule * 6,
+        each.height + rule * 6,
+      );
+    });
+  }
+};
+
+/** Washes the face in `colour`, so what's under it reads as tinted stock. */
+const washed = (face: Face, colour: string, alpha: number) => {
+  face.colour.save();
+  face.colour.globalAlpha = alpha;
+  face.colour.fillStyle = colour;
+  face.colour.fillRect(0, 0, face.width, face.height);
+  face.colour.restore();
+};
+
+/**
+ * Lays a page's full and behind pictures over its paper, in order: full
+ * ones edge to edge, behind ones washed with `paper` at `wash`. Returns the
+ * framed ones, for the page to set where it frames pictures.
+ */
+const layPage = (
+  face: Face,
+  placed: readonly Placed[],
+  paper: string,
+  wash: number,
+) => {
+  const whole = { x: 0, y: 0, width: face.width, height: face.height };
+
+  for (const each of placed) {
+    if (each.fit === "frame") continue;
+
+    cover(face.colour, each.picture, whole);
+
+    if (each.fit === "behind") washed(face, paper, wash);
+  }
+
+  return placed.flatMap((each) => (each.fit === "frame" ? [each.picture] : []));
+};
+
+/** Whether a picture fills the front edge to edge, with the title over it. */
 export const filled = (build: Build) =>
-  build.image !== undefined && build.card.front.fit === "fill";
+  picturesOn(build, "front").some((placed) => placed.fit === "fill");
 
 /** What a design paints over the front once `frontPicture` has laid it. */
 export interface FrontPicture {
-  /** The picture the design sets in its own frame, if it has one to frame. */
-  readonly framed: Picture | undefined;
-  /** Whether the design's ornaments go on: not over a full-bleed picture. */
+  /** The pictures the design sets in its own frame, sharing it. */
+  readonly framed: readonly Picture[];
+  /** Whether the design's ornaments go on: not over a picture filling it or in its frame. */
   readonly ornaments: boolean;
 }
 
 /**
- * Lays the front's picture under everything else when it fills the front or
- * sits behind the design, after the paper. Filled, it darkens towards the
- * foot so the title reads over it; behind, it's washed with the paper's
- * colour so the design prints over it as if on tinted stock.
+ * Lays the front's pictures under everything else when they fill the front
+ * or sit behind the design, after the paper, in order. Filled, the front
+ * darkens towards the foot so the title reads over it; behind, a picture is
+ * washed with the paper's colour so the design prints over it as if on
+ * tinted stock.
  */
 export const frontPicture = (face: Face, build: Build): FrontPicture => {
-  const { image } = build;
-  const fit = build.card.front.fit ?? "frame";
+  const placed = picturesOn(build, "front");
+  const framed = layPage(face, placed, build.colours.paper, 0.74);
 
-  if (image === undefined || fit === "frame") {
-    return { framed: image, ornaments: image === undefined };
+  if (!filled(build)) {
+    return { framed, ornaments: framed.length === 0 };
   }
 
-  const { colour, width, height } = face;
-
-  cover(colour, image, { x: 0, y: 0, width, height });
-
-  if (fit === "behind") {
-    colour.save();
-    colour.globalAlpha = 0.74;
-    colour.fillStyle = build.colours.paper;
-    colour.fillRect(0, 0, width, height);
-    colour.restore();
-
-    return { framed: undefined, ornaments: true };
-  }
-
+  const { colour, height } = face;
   const shade = colour.createLinearGradient(0, height * 0.4, 0, height);
 
   shade.addColorStop(0, "rgba(10, 8, 12, 0)");
   shade.addColorStop(0.55, "rgba(10, 8, 12, 0.42)");
   shade.addColorStop(1, "rgba(10, 8, 12, 0.72)");
   colour.fillStyle = shade;
-  colour.fillRect(0, 0, width, height);
+  colour.fillRect(0, 0, face.width, height);
 
-  return { framed: undefined, ornaments: false };
+  return { framed, ornaments: false };
 };
 
 /** Paints on the colour canvas in `colour`, then on the foil in white. */
@@ -316,46 +432,40 @@ export const title = (
 };
 
 /**
- * The inside picture on the inside cover, painted after the design's own
- * marks there: framed in its upper part with a fine foil rule, or filling it
- * edge to edge over everything. A picture behind the message is painted by
- * `handwritten` instead.
+ * The pictures on the inside cover, painted after the design's own marks
+ * there, in order: filling it edge to edge, washed pale behind, or framed in
+ * its upper part with a fine foil rule, sharing the room.
  */
 export const insidePicture = (face: Face, build: Build) => {
-  const image = build.insideImage;
-  const fit = build.card.inside.fit ?? "frame";
+  const placed = picturesOn(build, "left");
 
-  if (image === undefined || fit === "behind") return;
+  if (placed.length === 0) return;
 
-  const { colour, foil, width, height } = face;
+  const { foil, width, height } = face;
+  const framed = layPage(face, placed, build.colours.inside, 0.8);
 
-  if (fit === "fill") {
-    cover(colour, image, { x: 0, y: 0, width, height });
+  // The design's foil marks would shine through a picture filling the page
+  if (placed.some((each) => each.fit === "fill")) {
     foil.save();
     foil.fillStyle = "#000";
     foil.fillRect(0, 0, width, height);
     foil.restore();
-
-    return;
   }
 
-  const box = {
-    x: width * 0.14,
-    y: width * 0.14,
-    width: width * 0.72,
-    height: height * 0.6,
-  };
+  if (framed.length === 0) return;
 
-  cover(colour, image, box);
-  foiled(face, build.colours.foil, (paint) => {
-    paint.lineWidth = width * 0.004;
-    paint.strokeRect(
-      box.x - width * 0.012,
-      box.y - width * 0.012,
-      box.width + width * 0.024,
-      box.height + width * 0.024,
-    );
-  });
+  framePictures(
+    face,
+    build,
+    framed,
+    {
+      x: width * 0.14,
+      y: width * 0.14,
+      width: width * 0.72,
+      height: height * 0.6,
+    },
+    width * 0.004,
+  );
 };
 
 /**
@@ -370,17 +480,43 @@ export const handwritten = (face: Face, build: Build) => {
   const textWidth = width - margin * 2;
   const wobble = seeded(card.inside.message.length + 7);
   let y = height * 0.17;
+  let lines = 13;
 
   fill(face, colours.inside);
 
-  // A picture behind the message is washed pale, so the pen still reads
-  if (build.insideImage !== undefined && card.inside.fit === "behind") {
-    cover(colour, build.insideImage, { x: 0, y: 0, width, height });
+  // Pictures behind the message are washed pale, so the pen still reads
+  const placed = picturesOn(build, "right");
+  const framed = layPage(face, placed, colours.inside, 0.8);
+
+  // Over a picture filling the page, the words sit on a pale panel of paper
+  if (placed.some((each) => each.fit === "fill")) {
     colour.save();
-    colour.globalAlpha = 0.8;
+    colour.globalAlpha = 0.84;
     colour.fillStyle = colours.inside;
-    colour.fillRect(0, 0, width, height);
+    colour.beginPath();
+    colour.roundRect(
+      margin * 0.5,
+      margin * 0.5,
+      width - margin,
+      height - margin,
+      margin * 0.3,
+    );
+    colour.fill();
     colour.restore();
+  }
+
+  // Framed pictures share a band at the top, and the words start under it
+  if (framed.length > 0) {
+    const band = {
+      x: margin,
+      y: margin,
+      width: textWidth,
+      height: height * 0.3,
+    };
+
+    framePictures(face, build, framed, band, width * 0.004);
+    y = band.y + band.height + unit * 0.14;
+    lines = 8;
   }
 
   colour.fillStyle = colours.pen;
@@ -405,7 +541,7 @@ export const handwritten = (face: Face, build: Build) => {
     font: (pixels) => `500 ${pixels}px ${fonts.hand}`,
     largest: Math.round(unit * 0.074),
     width: textWidth,
-    lines: 13,
+    lines,
   });
 
   for (const text of wrap(colour, card.inside.message, textWidth)) {

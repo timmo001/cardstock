@@ -7,6 +7,7 @@
 import { BunStdio } from "@effect/platform-bun";
 import {
   PictureFit,
+  PicturePage,
   type ShuffleOptions,
   tones,
 } from "@timmo001/cardstock-card";
@@ -28,7 +29,7 @@ import {
   templateList,
 } from "./operations.ts";
 import { cardExport } from "./export.ts";
-import { mediaAdd } from "./media.ts";
+import { type MediaAs, mediaAdd } from "./media.ts";
 import { presetList, presetSave } from "./presets.ts";
 import type { Settings } from "./settings.ts";
 
@@ -71,14 +72,15 @@ const CardLink = tool(
 
 const MediaAdd = tool(
   "media_add",
-  "Add a picture, video or music to a card spec from its public https url, and return the changed spec with the new media id. The card loads it from that address each time it opens, so it travels in the card's link; find free ones with the docs' Where to find pictures guide. Use it as the front picture, the inside picture, the page background (filling the page behind the card, dimmed a little, in the viewer and exports) or the music. A video plays, muted and looping, where a picture would. To use the front's own file as the background too, set background to its media id in the spec. fit says where a picture sits: frame (framed: in the design's frame on the front, on the inside cover inside), fill (the whole front with the title over it, or the whole inside cover) or behind (washed into the paper behind the front's design, or behind the message)",
+  "Add a picture, video or music to a card spec from its public https url, and return the changed spec with the new media id. The card loads it from that address each time it opens, so it travels in the card's link; find free ones with the docs' Where to find pictures guide. Use it as the front picture, the inside picture, a picture laid over the rest (as picture, on the page on names: front, left for the inside cover or right for the page with the message; call it again for each one, and later ones lie on top), the page background (filling the page behind the card, dimmed a little, in the viewer and exports) or the music. A video plays, muted and looping, where a picture would, one per page. To use a picture as the background too, set background to its media id in the spec. fit says where a picture sits: frame (in a box: the design's frame on the front, the inside cover's upper part, or a band above the message; boxes on one page share it), fill (the whole page, with the title or message kept readable over it) or behind (washed into the paper behind the front's design or the message)",
   {
     ...specField,
     url: Schema.String,
     as: Schema.optionalKey(
-      Schema.Literals(["front", "inside", "background", "music"]),
+      Schema.Literals(["front", "inside", "picture", "background", "music"]),
     ),
     fit: Schema.optionalKey(PictureFit),
+    on: Schema.optionalKey(PicturePage),
   },
 )
   .annotate(Tool.Readonly, true)
@@ -153,8 +155,9 @@ const handlers = Effect.gen(function* () {
     media_add: (input: {
       readonly spec: string;
       readonly url: string;
-      readonly as?: "front" | "inside" | "background" | "music";
+      readonly as?: MediaAs;
       readonly fit?: PictureFit;
+      readonly on?: PicturePage;
     }) =>
       run(
         mediaAdd({
@@ -162,6 +165,7 @@ const handlers = Effect.gen(function* () {
           url: input.url,
           as: Option.fromNullishOr(input.as),
           fit: Option.fromNullishOr(input.fit),
+          on: Option.fromNullishOr(input.on),
         }),
       ),
     status: () => run(status()),

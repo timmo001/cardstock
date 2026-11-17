@@ -8,7 +8,7 @@ import { defineDesign } from "./define.ts";
 import { flourish, frame, pattern, sprig } from "./ornaments.ts";
 import {
   back,
-  cover,
+  coverShared,
   fill,
   foiled,
   frontPicture,
@@ -87,13 +87,18 @@ export const any = defineDesign({
         );
         sprig(paint, width / 2 + unit * 0.03, height * 0.48, unit * 0.22, 0.45);
       });
-    } else if (picture.framed !== undefined) {
-      cover(front.colour, picture.framed, {
-        x: width / 2 - unit * 0.35,
-        y: unit * 0.15,
-        width: unit * 0.7,
-        height: height * 0.5,
-      });
+    } else if (picture.framed.length > 0) {
+      coverShared(
+        front.colour,
+        picture.framed,
+        {
+          x: width / 2 - unit * 0.35,
+          y: unit * 0.15,
+          width: unit * 0.7,
+          height: height * 0.5,
+        },
+        unit * 0.02,
+      );
     }
 
     const end = title(front, build, {

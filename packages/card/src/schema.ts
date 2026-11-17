@@ -91,6 +91,28 @@ export const PictureFit = Schema.Literals(["frame", "fill", "behind"]);
 
 export type PictureFit = typeof PictureFit.Type;
 
+/**
+ * The page a picture is on: the front, the inside left (the inside of the
+ * front cover) or the inside right (the page with the message).
+ */
+export const PicturePage = Schema.Literals(["front", "left", "right"]);
+
+export type PicturePage = typeof PicturePage.Type;
+
+/**
+ * One picture or video on a page, laid over the ones before it. `fill` covers
+ * the page edge to edge, `frame` sets it in a box (boxes on one page share
+ * the room) and `behind` washes it pale into the paper, under the words.
+ */
+export const Layer = Schema.Struct({
+  image: MediaId,
+  on: PicturePage,
+  /** How it sits; `frame` without it. */
+  fit: Schema.optionalKey(PictureFit),
+});
+
+export interface Layer extends Schema.Schema.Type<typeof Layer> {}
+
 export const Card = Schema.Struct({
   version: Schema.Literal(1),
   /** What it's for, in a word or two, such as `Christmas` or `Mum's 60th`. */
@@ -125,6 +147,11 @@ export const Card = Schema.Struct({
      */
     fit: Schema.optionalKey(PictureFit),
   }),
+  /**
+   * More pictures and videos, in the order they're laid, each on the front
+   * or a page inside, after the front's and the inside's own `image`.
+   */
+  pictures: Schema.optionalKey(Schema.Array(Layer)),
   music: Schema.optionalKey(MediaId),
   /**
    * A picture or looping video filling the page behind the card, as well as
@@ -149,6 +176,15 @@ export const Card = Schema.Struct({
       (media) => media.id === card.background && media.kind === "audio",
     )
       ? { path: ["background"], issue: "The background is a picture or video" }
+      : undefined,
+  ),
+  Schema.makeFilter((card) =>
+    (card.pictures ?? []).some((layer) =>
+      card.media.some(
+        (media) => media.id === layer.image && media.kind === "audio",
+      ),
+    )
+      ? { path: ["pictures"], issue: "Each of pictures is a picture or video" }
       : undefined,
   ),
 );
@@ -200,19 +236,51 @@ export const missingMedia = (card: Card): readonly MediaId[] => {
   const known = new Set(card.media.map((media) => media.id));
 
   return [
-    card.front.image,
-    card.inside.image,
+    ...layersOf(card).map((layer) => layer.image),
     card.music,
     card.background,
   ].filter((id): id is MediaId => id !== undefined && !known.has(id));
 };
 
 /**
+ * Every picture on the card, in the order it's laid: the front's own
+ * `image`, the inside's, then `pictures`. The inside's own picture is on the
+ * inside left, unless it sits behind the message, on the right.
+ */
+export const layersOf = (card: Card): readonly Layer[] => [
+  ...(card.front.image === undefined
+    ? []
+    : [
+        {
+          image: card.front.image,
+          on: "front" as const,
+          fit: card.front.fit ?? "frame",
+        },
+      ]),
+  ...(card.inside.image === undefined
+    ? []
+    : [
+        {
+          image: card.inside.image,
+          on:
+            card.inside.fit === "behind"
+              ? ("right" as const)
+              : ("left" as const),
+          fit: card.inside.fit ?? "frame",
+        },
+      ]),
+  ...(card.pictures ?? []),
+];
+
+/**
  * The pictures and videos a card shows, on its front, inside and behind it,
  * without its music.
  */
 export const pictureMedia = (card: Card): readonly Media[] => {
-  const shown = new Set([card.front.image, card.inside.image, card.background]);
+  const shown = new Set<MediaId | undefined>([
+    ...layersOf(card).map((layer) => layer.image),
+    card.background,
+  ]);
 
   return card.media.filter(
     (media) => media.kind !== "audio" && shown.has(media.id),

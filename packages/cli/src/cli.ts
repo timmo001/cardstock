@@ -153,25 +153,46 @@ const mediaAddCommand = Command.make(
         "A picture, video or sound at a public web address; the card loads it from there, so it travels in the card's link. See Where to find pictures in the docs for free ones",
       ),
     ),
-    as: Flag.Literals("as", ["front", "inside", "background", "music"]).pipe(
+    as: Flag.Literals("as", [
+      "front",
+      "inside",
+      "picture",
+      "background",
+      "music",
+    ]).pipe(
       Flag.withDescription(
-        "Use it as the front picture, the inside picture, the page background behind the card or the music",
+        "Use it as the front picture, the inside picture, one more picture laid over the rest on the page --on names, the page background behind the card or the music",
       ),
       Flag.optional,
     ),
     fit: Flag.Literals("fit", ["frame", "fill", "behind"]).pipe(
       Flag.withDescription(
-        "Where a picture sits: in a frame, filling the front or inside cover, or behind the design or message",
+        "Where a picture sits: in a box (boxes on one page share it), filling its page, or washed in behind the design or message",
+      ),
+      Flag.optional,
+    ),
+    on: Flag.Literals("on", ["front", "left", "right"]).pipe(
+      Flag.withDescription(
+        "The page a laid picture (--as picture) goes on: the front, the inside left or the inside right with the message. The front without it",
       ),
       Flag.optional,
     ),
   },
-  Effect.fn("mediaAddCommand")(function* ({ json, spec, file, url, as, fit }) {
+  Effect.fn("mediaAddCommand")(function* ({
+    json,
+    spec,
+    file,
+    url,
+    as,
+    fit,
+    on,
+  }) {
     const added = yield* mediaAdd({
       spec: yield* readSpec({ spec, file }),
       url,
       as,
       fit,
+      on,
     });
 
     // A spec from a file is changed in place; one given inline comes back
@@ -205,6 +226,7 @@ const mediaAddCommand = Command.make(
 const slotNames = {
   front: "front picture",
   inside: "inside picture",
+  picture: "picture laid over the rest",
   background: "page background",
   music: "music",
 } as const;

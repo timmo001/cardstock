@@ -5,7 +5,7 @@
  * alike. Every design shares it, in the design's own colours and fonts.
  */
 import type { Build, Paint } from "./define.ts";
-import { cover, fitText, wrap } from "./paint.ts";
+import { cover, fitText, leadPicture, wrap } from "./paint.ts";
 
 /** How dark the wash over a picture is, so white type reads on any photo. */
 const wash = 0.42;
@@ -22,7 +22,7 @@ export const paintFullView = (
   height: number,
 ) => {
   const { card, colours, fonts } = build;
-  const picture = build.insideImage ?? build.image;
+  const picture = leadPicture(build);
   const unit = Math.min(width, height * 0.8);
   const column = Math.min(width * 0.84, unit * 0.92);
   const onPicture = picture !== undefined || card.background !== undefined;

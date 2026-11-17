@@ -1,7 +1,8 @@
 /**
  * The card page at `/cards/<id>`, and `/cards/new` for a new one: the
- * card's words, design and effect beside a live 3D preview, Save, Delete,
- * and the card in a link. Its pictures, video and music come from web
+ * card's words, design and pictures beside a live 3D preview, Save, Delete,
+ * and the card in a link. The form is in panels, one open at a time, by the
+ * part of the card each changes. Its pictures, video and music come from web
  * addresses, and Save keeps it on this device alone; it goes out only as its
  * link, with the whole card sealed in it.
  */
@@ -15,6 +16,7 @@ import {
   designIds,
   type EffectIdValue,
   effectIds,
+  layersOf,
   type Media,
   type MediaId,
   newCardId,
@@ -22,6 +24,7 @@ import {
   openings,
   newMediaId,
   PictureFit,
+  type PicturePage,
   templateById,
   shuffleCard,
   webAddress,
@@ -61,15 +64,21 @@ import {
   GwSelect,
   GwSwitch,
   h,
+  type MenuItem,
 } from "@timmo001/groundwork-ui";
 import { Effect, Exit, Match, Option, Schema, Scope } from "effect";
 import { cardPictures, deleteCard, findCard, saveCard } from "./card-store.ts";
 import {
+  phArrowDown,
   phArrowLeft,
+  phArrowUp,
+  phDotsThreeVertical,
   phDownloadSimple,
   phEnvelopeSimple,
   phImage,
+  phLinkSimple,
   phMusicNotes,
+  phPlus,
   phShuffle,
   phTrash,
 } from "./icons.ts";
@@ -93,6 +102,10 @@ const wholeDialog = page?.querySelector(".card-whole-dialog");
 const wholeCopy = wholeDialog?.querySelector(".card-whole-copy");
 const exportMenu = page?.querySelector(".card-export");
 const shuffleMenu = page?.querySelector(".card-shuffle");
+const webDialog = page?.querySelector(".card-web-dialog");
+const webUse = webDialog?.querySelector(".card-web-use");
+const webUrl = webDialog?.querySelector("gw-input[name='web-url']");
+const backgroundAdd = page?.querySelector(".card-add-background");
 
 /** Whether the back lists the web addresses the card's files load from. */
 const footnoteSwitch = () => {
@@ -101,55 +114,30 @@ const footnoteSwitch = () => {
   return found instanceof GwSwitch ? found : undefined;
 };
 
-/** The picture and music rows, each with From a link and Remove. */
-const slots = {
-  front: {
-    row: page?.querySelector(".card-picture"),
-    web: page?.querySelector(".card-picture-web"),
-    remove: page?.querySelector(".card-picture-remove"),
-    none: "None yet. The design decorates the front.",
-  },
-  inside: {
-    row: page?.querySelector(".card-inside"),
-    web: page?.querySelector(".card-inside-web"),
-    remove: page?.querySelector(".card-inside-remove"),
-    none: "None yet. The message has the inside to itself.",
-  },
-  background: {
-    row: page?.querySelector(".card-background"),
-    web: page?.querySelector(".card-background-web"),
-    remove: page?.querySelector(".card-background-remove"),
-    none: "None yet. The card sits on a plain page.",
-  },
-  music: {
-    row: page?.querySelector(".card-music"),
-    web: page?.querySelector(".card-music-web"),
-    remove: page?.querySelector(".card-music-remove"),
-    none: "None yet. The card opens to its own sounds.",
-  },
-} as const;
+/**
+ * The editor's lists: the front's pictures, the inside's (on the left or
+ * the right page), and the one background and track.
+ */
+type ListName = "front" | "inside" | "background" | "music";
 
-const webDialog = page?.querySelector(".card-web-dialog");
-const webUse = webDialog?.querySelector(".card-web-use");
-const webUrl = webDialog?.querySelector("gw-input[name='web-url']");
+/** The lists that hold any number of pictures, laid in order. */
+type PictureList = "front" | "inside";
 
-type Slot = keyof typeof slots;
+/** A picture or video on a page, as the editor holds it. */
+interface Item {
+  readonly media: Media;
+  readonly on: PicturePage;
+  readonly fit: PictureFit;
+}
 
-/** The slots that take a picture or a video. */
-type PictureSlot = Exclude<Slot, "music">;
+const pictures = { front: Array.of<Item>(), inside: Array.of<Item>() };
+let background: Media | undefined;
+let music: Media | undefined;
 
-/** The picture slots on the card itself, each with its own "Sits" picker. */
-type FittedSlot = Exclude<PictureSlot, "background">;
+const laidItems = () => [...pictures.front, ...pictures.inside];
 
-const fitField = {
-  front: "fit",
-  inside: "insideFit",
-} as const satisfies { readonly [S in FittedSlot]: keyof Fields };
-
-const isFitted = (slot: Slot): slot is FittedSlot =>
-  slot === "front" || slot === "inside";
-
-const useFront = page?.querySelector(".card-background-front");
+const isPictureList = (list: ListName): list is PictureList =>
+  list === "front" || list === "inside";
 
 const pictureTypes = new Map([
   ["png", "image/png"],
@@ -168,41 +156,15 @@ const pictureTypes = new Map([
  * disagree on some types, such as Ogg, so the extension decides, then the
  * type the site gives.
  */
-const types = {
-  front: pictureTypes,
-  inside: pictureTypes,
-  background: pictureTypes,
-  music: new Map([
-    ["mp3", "audio/mpeg"],
-    ["ogg", "audio/ogg"],
-    ["oga", "audio/ogg"],
-    ["opus", "audio/ogg"],
-    ["m4a", "audio/mp4"],
-    ["wav", "audio/wav"],
-    ["flac", "audio/flac"],
-  ]),
-} as const;
-
-/**
- * The card's pictures and music as they are in the editor, each by its web
- * address. The background can be the front's own, so two slots can hold one
- * file.
- */
-interface ChosenMedia {
-  front: Media | undefined;
-  inside: Media | undefined;
-  background: Media | undefined;
-  music: Media | undefined;
-}
-
-const slotNames = ["front", "inside", "background", "music"] as const;
-
-const chosen: ChosenMedia = {
-  front: undefined,
-  inside: undefined,
-  background: undefined,
-  music: undefined,
-};
+const musicTypes = new Map([
+  ["mp3", "audio/mpeg"],
+  ["ogg", "audio/ogg"],
+  ["oga", "audio/ogg"],
+  ["opus", "audio/ogg"],
+  ["m4a", "audio/mp4"],
+  ["wav", "audio/wav"],
+  ["flac", "audio/flac"],
+]);
 
 const designNames = {
   christmas: "Christmas",
@@ -247,6 +209,39 @@ const paletteNames = {
   ink: "Ink",
 } satisfies { readonly [Id in PaletteIdValue]: string };
 
+/** How a picture sits, as its menu offers it. */
+const fitLabels = {
+  fill: "Full",
+  frame: "In a box",
+  behind: "Behind",
+} satisfies { readonly [Fit in PictureFit]: string };
+
+/** Where a picture sits, as its row says it. */
+const placeNames = {
+  front: {
+    fill: "Filling the front",
+    frame: "In a box on the front",
+    behind: "Behind the front's design",
+  },
+  left: {
+    fill: "Filling the left page",
+    frame: "In a box on the left page",
+    behind: "Behind, on the left page",
+  },
+  right: {
+    fill: "Filling the right page, under the message",
+    frame: "In a box above the message",
+    behind: "Behind the message",
+  },
+} satisfies {
+  readonly [Page in PicturePage]: { readonly [Fit in PictureFit]: string };
+};
+
+const pageNames = {
+  left: "Left page",
+  right: "Right page",
+} as const;
+
 /** Fills the Colours picker with the chosen design's colourways. */
 const showPalettes = () => {
   const design = field("design")?.value ?? "";
@@ -281,8 +276,6 @@ interface Fields {
   readonly to: string;
   readonly message: string;
   readonly from: string;
-  readonly fit: string;
-  readonly insideFit: string;
   /** `on` when the back lists the web addresses the files load from. */
   readonly footnote: string;
 }
@@ -298,28 +291,7 @@ const fieldNames = [
   "to",
   "message",
   "from",
-  "fit",
-  "insideFit",
 ] as const satisfies ReadonlyArray<keyof Fields>;
-
-const fitNames = {
-  fit: {
-    frame: "In the frame",
-    fill: "Filling the front",
-    behind: "Behind the design",
-  },
-  insideFit: {
-    frame: "Framed on the left page",
-    fill: "Filling the left page",
-    behind: "Behind the message",
-  },
-} satisfies {
-  readonly [Name in (typeof fitField)[FittedSlot]]: {
-    readonly [Fit in PictureFit]: string;
-  };
-};
-
-const isPictureFit = Schema.is(PictureFit);
 
 const field = (name: keyof Fields) => {
   const found = form?.querySelector(
@@ -345,8 +317,6 @@ const readFields = (): Fields => {
     to: value("to"),
     message: value("message"),
     from: value("from"),
-    fit: value("fit"),
-    insideFit: value("insideFit"),
     footnote: footnoteSwitch()?.checked === true ? "on" : "",
   };
 };
@@ -381,8 +351,6 @@ const fieldsOf = (card: Card): Fields => ({
   to: card.inside.to ?? "",
   message: card.inside.message,
   from: card.inside.from,
-  fit: card.front.fit ?? "frame",
-  insideFit: card.inside.fit ?? "frame",
   footnote: card.footnote === true ? "on" : "",
 });
 
@@ -391,47 +359,30 @@ const toCard = Schema.decodeUnknownOption(Card);
 const isDesignId = Schema.is(DesignId);
 
 /**
- * The card the fields describe, with the picture and music chosen now.
- * `None` while they don't make a card yet.
+ * The card the fields describe, with the pictures and music in the lists
+ * now. `None` while they don't make a card yet. Every picture goes in
+ * `pictures`, in the order it's laid.
  */
 const cardOf = (fields: Fields, occasion?: string) => {
-  const image = chosen.front;
-  const insideImage = chosen.inside;
-  const music = chosen.music;
-  const background = chosen.background;
-
-  // Framed is how a card without a fit shows, so it's left unnamed
-  const front =
-    image === undefined
-      ? { title: fields.title }
-      : isPictureFit(fields.fit) && fields.fit !== "frame"
-        ? { title: fields.title, image: image.id, fit: fields.fit }
-        : { title: fields.title, image: image.id };
+  const laid = laidItems();
 
   const words =
     fields.to.trim() === ""
       ? { message: fields.message, from: fields.from }
       : { message: fields.message, from: fields.from, to: fields.to };
 
-  const inside =
-    insideImage === undefined
-      ? words
-      : isPictureFit(fields.insideFit) && fields.insideFit !== "frame"
-        ? { ...words, image: insideImage.id, fit: fields.insideFit }
-        : { ...words, image: insideImage.id };
-
   const spec = {
     version: 1,
     occasion: fields.occasion || occasion,
     design: fields.design,
     effect: fields.effect,
-    front,
-    inside,
-    // The background can be the front's own file, which is listed once
+    front: { title: fields.title },
+    inside: words,
+    // The background can be one of the pictures, which is listed once
     media: [
       ...new Map(
-        [image, insideImage, background, music].flatMap((media) =>
-          media === undefined ? [] : [[media.id, media] as const],
+        [...laid.map((item) => item.media), background, music].flatMap(
+          (media) => (media === undefined ? [] : [[media.id, media] as const]),
         ),
       ).values(),
     ],
@@ -459,7 +410,21 @@ const cardOf = (fields: Fields, occasion?: string) => {
       ? sized
       : { ...sized, opening: fields.opening };
 
-  const scored = music === undefined ? opened : { ...opened, music: music.id };
+  // Framed is how a picture without a fit sits, so it's left unnamed
+  const pictured =
+    laid.length === 0
+      ? opened
+      : {
+          ...opened,
+          pictures: laid.map((item) =>
+            item.fit === "frame"
+              ? { image: item.media.id, on: item.on }
+              : { image: item.media.id, on: item.on, fit: item.fit },
+          ),
+        };
+
+  const scored =
+    music === undefined ? pictured : { ...pictured, music: music.id };
 
   // Off is how a card without a footnote shows
   const noted =
@@ -611,55 +576,338 @@ const schedulePreview = () => {
   }, 350);
 };
 
-// Picture and music
+/** What changing the card does once the page is set up: Save, then the preview. */
+let changed = () => {};
 
-/** What a row says about the file in it, crediting an Unsplash photo as the back does. */
-const describeMedia = (slot: Slot, media: Media | undefined) => {
-  if (media === undefined) return slots[slot].none;
+// Pictures, the background and music
 
-  const kind =
-    slot === "music" ? "track" : media.kind === "video" ? "video" : "picture";
+const kindNames = {
+  image: "picture",
+  video: "video",
+  audio: "track",
+} satisfies { readonly [Kind in Media["kind"]]: string };
 
+const isText = Schema.is(Schema.String);
+
+/** What a row says about its file, crediting an Unsplash photo as the back does. */
+const describeMedia = (media: Media) => {
   return Match.valueTags(media.source, {
     Unsplash: (photo) => `Photo by ${photo.photographer} on Unsplash`,
-    Web: (found) => `A ${kind} from ${new URL(found.url).host}`,
+    Web: (found) =>
+      `A ${kindNames[media.kind]} from ${new URL(found.url).host}`,
   });
 };
 
-const showSlot = (slot: Slot) => {
-  const { row, remove, web } = slots[slot];
-  const media = chosen[slot];
+/** Drops decoded pictures no list uses any more. */
+const prunePictures = () => {
+  const used = new Set<string>(laidItems().map((item) => item.media.id));
 
-  row?.setAttribute("description", describeMedia(slot, media));
-  remove?.toggleAttribute("hidden", media === undefined);
+  if (background !== undefined) used.add(background.id);
 
-  if (slot !== "music") {
-    const unchosen = media === undefined;
+  images = new Map([...images].filter(([id]) => used.has(id)));
+};
 
-    if (isFitted(slot))
-      field(fitField[slot])?.toggleAttribute("hidden", unchosen);
-  }
-
-  // The background can take the front's own picture or video in one tap
-  useFront?.toggleAttribute(
-    "hidden",
-    chosen.front === undefined || chosen.background?.id === chosen.front.id,
+/** Whether a page already plays a video, which it can only do once. */
+const hasVideo = (on: PicturePage, except?: Item) =>
+  laidItems().some(
+    (item) => item !== except && item.on === on && item.media.kind === "video",
   );
 
-  const kind = slot === "music" ? "track" : "picture";
+const svgNamespace = "http://www.w3.org/2000/svg";
 
-  web?.setAttribute(
-    "label",
-    media === undefined ? `Add a ${kind} from a link` : `Change the ${kind}`,
+/** A Phosphor icon, as the rows draw it in place of a thumbnail. */
+const iconOf = (path: string) => {
+  const svg = document.createElementNS(svgNamespace, "svg");
+  const drawn = document.createElementNS(svgNamespace, "path");
+
+  svg.setAttribute("viewBox", "0 0 24 24");
+  drawn.setAttribute("d", path);
+  svg.append(drawn);
+
+  return svg;
+};
+
+/** A small square of the picture, cropped to fill it, or an icon for music. */
+const thumbOf = (media: Media) => {
+  const box = h("span", { class: "card-thumb", "aria-hidden": "true" });
+  const picture = images.get(media.id);
+
+  if (media.kind === "audio" || picture === undefined) {
+    box.append(iconOf(media.kind === "audio" ? phMusicNotes : phImage));
+
+    return box;
+  }
+
+  const size = 96;
+  const canvas = h("canvas", { width: size, height: size });
+  const paint = canvas.getContext("2d");
+  const scale = Math.max(size / picture.width, size / picture.height);
+  const width = picture.width * scale;
+  const height = picture.height * scale;
+
+  paint?.drawImage(
+    "video" in picture ? picture.video : picture,
+    (size - width) / 2,
+    (size - height) / 2,
+    width,
+    height,
+  );
+  box.append(canvas);
+
+  return box;
+};
+
+/** One row of a list: the file's thumbnail, what it is and where, and its menu. */
+const rowOf = (
+  media: Media,
+  where: string,
+  items: readonly MenuItem[],
+  onSelect: (value: string) => void,
+) => {
+  const name = describeMedia(media);
+
+  const menu = h("gw-menu-button", {
+    class: "card-row-menu",
+    label: `Options for ${name}`,
+    icon: phDotsThreeVertical,
+    labels: "hide",
+    appearance: "plain",
+  });
+
+  if (menu instanceof GwMenuButton) menu.items = [...items];
+
+  menu.addEventListener("select", (event) => {
+    if (!(event instanceof CustomEvent)) return;
+
+    const value: unknown = event.detail?.value;
+
+    if (isText(value)) onSelect(value);
+  });
+
+  return h(
+    "div",
+    { class: "card-row", role: "listitem" },
+    thumbOf(media),
+    h(
+      "span",
+      { class: "card-row-text" },
+      h("span", { class: "card-row-name" }, name),
+      h("span", { class: "card-row-where" }, where),
+    ),
+    menu,
   );
 };
 
+/** The items every row's menu ends with. */
+const changeItems = (kind: string): readonly MenuItem[] => [
+  {
+    value: "change",
+    label: "Change the address",
+    icon: phLinkSimple,
+    separator: true,
+  },
+  { value: "remove", label: `Remove the ${kind}`, icon: phTrash },
+];
+
 /**
- * Puts a file from its web address in a slot. The card loads it from there
- * each time, so it travels in the card's link. The address's extension
- * decides its type, then the type the site gives.
+ * A picture's row. The list shows the top one first: it lies over the ones
+ * under it, so Bring forward moves it up the list and later in the card's
+ * order.
  */
-const readWeb = async (slot: Slot, address: string) => {
+const pictureRow = (list: PictureList, item: Item, index: number) => {
+  const items = pictures[list];
+
+  const fits = PictureFit.literals.map((fit): MenuItem => ({
+    value: `fit:${fit}`,
+    label: fitLabels[fit],
+    description: placeNames[item.on][fit],
+    checked: item.fit === fit,
+    group: "Sits",
+  }));
+
+  const sides =
+    list === "inside"
+      ? (["left", "right"] as const).map((on): MenuItem => ({
+          value: `on:${on}`,
+          label: pageNames[on],
+          checked: item.on === on,
+          group: "Page",
+        }))
+      : [];
+
+  const order: readonly MenuItem[] =
+    items.length < 2
+      ? []
+      : [
+          {
+            value: "forward",
+            label: "Bring forward",
+            icon: phArrowUp,
+            disabled: index === items.length - 1,
+            separator: true,
+          },
+          {
+            value: "back",
+            label: "Send back",
+            icon: phArrowDown,
+            disabled: index === 0,
+          },
+        ];
+
+  return rowOf(
+    item.media,
+    placeNames[item.on][item.fit],
+    [...fits, ...sides, ...order, ...changeItems("picture")],
+    (value) => {
+      const at = items.indexOf(item);
+
+      if (at === -1) return;
+
+      if (value.startsWith("fit:")) {
+        const fit = PictureFit.literals.find((each) => `fit:${each}` === value);
+
+        if (fit !== undefined) items[at] = { ...item, fit };
+      } else if (value.startsWith("on:")) {
+        const on = value === "on:right" ? "right" : "left";
+
+        if (item.media.kind === "video" && hasVideo(on, item)) {
+          showProblem(
+            "That page already plays a video, and a page plays one at a time.",
+          );
+
+          return;
+        }
+
+        items[at] = { ...item, on };
+      } else if (value === "forward" || value === "back") {
+        const to = value === "forward" ? at + 1 : at - 1;
+        const other = items[to];
+
+        if (other === undefined) return;
+
+        items[to] = item;
+        items[at] = other;
+      } else if (value === "change") {
+        askAddress({ list, item });
+
+        return;
+      } else if (value === "remove") {
+        // A background that shares this picture keeps it
+        items.splice(at, 1);
+        prunePictures();
+      }
+
+      showProblem(undefined);
+      showLists();
+      changed();
+    },
+  );
+};
+
+/** The background's or the music's row, which holds one file at most. */
+const singleRow = (list: "background" | "music", media: Media) =>
+  rowOf(
+    media,
+    list === "music"
+      ? "Plays once the card is open"
+      : laidItems().some((item) => item.media.id === media.id)
+        ? "Behind the card, as on the card"
+        : "Filling the page behind the card",
+    changeItems(list === "music" ? "music" : "background"),
+    (value) => {
+      if (value === "change") {
+        askAddress({ list });
+
+        return;
+      }
+
+      if (list === "music") music = undefined;
+      else background = undefined;
+
+      showLists();
+      changed();
+    },
+  );
+
+/** Draws every list's rows, and shows Add where it can take another. */
+const showLists = () => {
+  for (const list of ["front", "inside", "background", "music"] as const) {
+    const box = page?.querySelector(`.card-list[data-list='${list}']`);
+    const rows = box?.querySelector(".card-rows");
+    const none = box?.querySelector(".card-list-none");
+    const add = box?.querySelector(".card-add");
+
+    if (!(rows instanceof HTMLElement)) continue;
+
+    const single = list === "music" ? music : background;
+
+    const made = isPictureList(list)
+      ? pictures[list]
+          .map((item, index) => pictureRow(list, item, index))
+          .toReversed()
+      : single === undefined
+        ? []
+        : [singleRow(list, single)];
+
+    rows.replaceChildren(...made);
+    none?.toggleAttribute("hidden", made.length > 0);
+
+    // The background and music take one file, so Add goes once there's one
+    add?.toggleAttribute("hidden", !isPictureList(list) && made.length > 0);
+  }
+
+  if (backgroundAdd instanceof GwMenuButton) {
+    const shared = new Map(
+      laidItems()
+        .filter((item) => item.media.kind !== "audio")
+        .map((item) => [item.media.id, item] as const),
+    );
+
+    backgroundAdd.items = [
+      { value: "web", label: "From a web address", icon: phLinkSimple },
+      ...[...shared.values()].map((item): MenuItem => ({
+        value: `use:${item.media.id}`,
+        label:
+          item.on === "front" ? "A picture on the front" : "A picture inside",
+        description: describeMedia(item.media),
+        icon: phImage,
+      })),
+    ];
+  }
+};
+
+/** What the web address dialog fills: a list, and the picture it replaces. */
+interface Asking {
+  readonly list: ListName;
+  readonly item?: Item;
+}
+
+let asking: Asking | undefined;
+
+/** Asks for a web address for a list, or to change one already there. */
+const askAddress = (target: Asking) => {
+  if (!(webDialog instanceof GwDialog)) return;
+
+  asking = target;
+
+  if (webUrl instanceof GwInput) {
+    const singles = { music, background, front: undefined, inside: undefined };
+    const media = target.item?.media ?? singles[target.list];
+
+    webUrl.value = media === undefined ? "" : webAddress(media);
+    webUrl.error = "";
+  }
+
+  webDialog.show();
+};
+
+/**
+ * Puts a file from its web address in a list, or in place of the picture
+ * it changes. The card loads it from there each time, so it travels in the
+ * card's link. The address's extension decides its type, then the type the
+ * site gives.
+ */
+const readWeb = async (target: Asking, address: string) => {
   const url = URL.parse(address.trim());
 
   if (url === null || url.protocol !== "https:") {
@@ -673,90 +921,120 @@ const readWeb = async (slot: Slot, address: string) => {
   }
 
   const extension = url.pathname.split(".").at(-1)?.toLowerCase() ?? "";
-  const known = new Set(types[slot].values());
+  const known = target.list === "music" ? musicTypes : pictureTypes;
+  const types = new Set(known.values());
 
   const type =
-    types[slot].get(extension) ??
-    (known.has(fetched.value.type) ? fetched.value.type : undefined);
+    known.get(extension) ??
+    (types.has(fetched.value.type) ? fetched.value.type : undefined);
 
   if (type === undefined) {
-    return slot === "music"
+    return target.list === "music"
       ? "That isn't an MP3, Ogg, M4A, WAV or FLAC track."
       : "That isn't a PNG, JPEG, WebP, GIF, AVIF or SVG picture, or an MP4 or WebM video.";
   }
 
   const source = WebSource.make({ url: url.href });
+  const id = Effect.runSync(newMediaId);
 
-  if (slot !== "music") {
-    return await usePicture(slot, fetched.value.bytes, type, source);
+  if (target.list === "music") {
+    music = { id, kind: "audio", type, source };
+
+    return undefined;
   }
 
-  chosen.music = {
-    id: Effect.runSync(newMediaId),
-    kind: "audio",
-    type,
-    source,
-  };
+  const kind = type.startsWith("video/") ? "video" : "image";
+  const media: Media = { id, kind, type, source };
+  const { list, item: old } = target;
 
-  return undefined;
-};
+  // A video can't be painted, so a page shows one at most
+  const on: PicturePage =
+    old?.on ??
+    (list === "front"
+      ? "front"
+      : kind === "video" && hasVideo("left") && !hasVideo("right")
+        ? "right"
+        : "left");
 
-/**
- * Drops a picture slot's decoded picture from the preview's pictures, unless
- * another slot shows the same file.
- */
-const forgetPicture = (slot: PictureSlot) => {
-  const id = chosen[slot]?.id;
+  if (isPictureList(list) && kind === "video" && hasVideo(on, old)) {
+    return "That page already plays a video, and a page plays one at a time. Add a picture here, or remove the other video first.";
+  }
 
-  if (id === undefined) return;
-
-  const shared = slotNames.some(
-    (other) => other !== slot && chosen[other]?.id === id,
+  const decoded = await Effect.runPromiseExit(
+    decodePicture(fetched.value.bytes, type),
   );
 
-  if (!shared) images = new Map([...images].filter(([each]) => each !== id));
-};
-
-/** Puts a picture from the web in a picture slot, once it's read for the preview. */
-const usePicture = async (
-  slot: PictureSlot,
-  bytes: Uint8Array,
-  type: string,
-  source: Media["source"],
-) => {
-  const id = Effect.runSync(newMediaId);
-  const decoded = await Effect.runPromiseExit(decodePicture(bytes, type));
-  const kind = type.startsWith("video/") ? "video" : "image";
-
-  if (Exit.isFailure(decoded))
+  if (Exit.isFailure(decoded)) {
     return `That ${kind === "video" ? "video" : "picture"} couldn't be read.`;
+  }
 
-  forgetPicture(slot);
   images = new Map([...images, [id, decoded.value]]);
-  chosen[slot] = { id, kind, type, source };
+
+  if (list === "background") {
+    background = media;
+  } else if (isPictureList(list)) {
+    const items = pictures[list];
+    const item: Item = { media, on, fit: old?.fit ?? "frame" };
+    const at = old === undefined ? -1 : items.indexOf(old);
+
+    if (at === -1) items.push(item);
+    else items[at] = item;
+
+    // The background follows a picture it shared, when that picture changes
+    if (old !== undefined && background?.id === old.media.id) {
+      background = media;
+    }
+  }
+
+  prunePictures();
 
   return undefined;
 };
 
-/** Puts a card's own files in their slots. */
-const fillSlots = (card: Card) => {
+/** Puts a card's own files in the lists, in the order they're laid. */
+const fillLists = (card: Card) => {
   const named = (id: MediaId | undefined) =>
     card.media.find((each) => each.id === id);
 
-  chosen.front = named(card.front.image);
-  chosen.inside = named(card.inside.image);
-  chosen.background = named(card.background);
-  chosen.music = named(card.music);
+  pictures.front.length = 0;
+  pictures.inside.length = 0;
+
+  for (const layer of layersOf(card)) {
+    const media = named(layer.image);
+
+    if (media === undefined) continue;
+
+    const item = { media, on: layer.on, fit: layer.fit ?? "frame" };
+
+    if (layer.on === "front") pictures.front.push(item);
+    else pictures.inside.push(item);
+  }
+
+  background = named(card.background);
+  music = named(card.music);
 };
 
-/** Fills the slots from a card and loads its pictures for the preview. */
+/** Fills the lists from a card and loads its pictures for the preview. */
 const startFrom = async (card: Card) => {
-  fillSlots(card);
+  fillLists(card);
 
-  const pictures = await run(cardPictures(card).pipe(Effect.exit));
+  const loaded = await run(cardPictures(card).pipe(Effect.exit));
 
-  if (Exit.isSuccess(pictures)) images = pictures.value;
+  if (Exit.isSuccess(loaded)) images = loaded.value;
 };
+
+/** Opens one panel at a time: opening one closes the others. */
+const panels = [...(form?.querySelectorAll("gw-expansion.card-panel") ?? [])];
+
+for (const panel of panels) {
+  panel.addEventListener("toggle", () => {
+    if (!panel.hasAttribute("open")) return;
+
+    for (const other of panels) {
+      if (other !== panel) other.removeAttribute("open");
+    }
+  });
+}
 
 const program = async () => {
   const segment = location.pathname.split("/")[2] ?? "";
@@ -793,7 +1071,7 @@ const program = async () => {
 
   if (copy !== undefined) await startFrom(copy);
 
-  for (const slot of slotNames) showSlot(slot);
+  showLists();
 
   const blank: Fields = {
     occasion: "",
@@ -806,8 +1084,6 @@ const program = async () => {
     to: "",
     message: "",
     from: "",
-    fit: "frame",
-    insideFit: "frame",
     footnote: "",
   };
 
@@ -831,13 +1107,14 @@ const program = async () => {
 
   writeFields(start);
 
-  /** Everything Save would send: the fields, and which picture and track. */
+  /** Everything Save would send: the fields, and the files in each list. */
   const current = () => ({
     ...readFields(),
-    picture: chosen.front?.id ?? "",
-    insidePicture: chosen.inside?.id ?? "",
-    backgroundPicture: chosen.background?.id ?? "",
-    track: chosen.music?.id ?? "",
+    pictures: JSON.stringify(
+      laidItems().map((item) => [item.media.id, item.on, item.fit]),
+    ),
+    backgroundPicture: background?.id ?? "",
+    track: music?.id ?? "",
   });
 
   const dirty = new DirtyState<ReturnType<typeof current>>();
@@ -846,16 +1123,10 @@ const program = async () => {
   dirty.start(
     template === undefined
       ? current()
-      : {
-          ...blank,
-          picture: "",
-          insidePicture: "",
-          backgroundPicture: "",
-          track: "",
-        },
+      : { ...blank, pictures: "[]", backgroundPicture: "", track: "" },
   );
-  dirty.subscribe((changed) => {
-    saveButton?.toggleAttribute("disabled", !changed);
+  dirty.subscribe((isDirty) => {
+    saveButton?.toggleAttribute("disabled", !isDirty);
   });
   saveButton?.toggleAttribute("disabled", !dirty.dirty);
   dirty.update(current());
@@ -874,7 +1145,7 @@ const program = async () => {
 
   if (Option.isSome(first)) void preview(first.value);
 
-  const changed = () => {
+  changed = () => {
     dirty.update(current());
     schedulePreview();
   };
@@ -882,49 +1153,48 @@ const program = async () => {
   form?.addEventListener("input", changed);
   form?.addEventListener("change", changed);
 
-  /** The slot whose From a link was pressed, while its dialog asks. */
-  let webSlot: Slot | undefined;
+  for (const add of page?.querySelectorAll("gw-button.card-add") ?? []) {
+    add.addEventListener("click", () => {
+      const list = ["front", "inside", "music"].find(
+        (each): each is ListName => each === add.getAttribute("data-list"),
+      );
 
-  for (const slot of slotNames) {
-    const { web, remove } = slots[slot];
-
-    web?.addEventListener("click", () => {
-      if (!(webDialog instanceof GwDialog)) return;
-
-      webSlot = slot;
-
-      if (webUrl instanceof GwInput) {
-        const media = chosen[slot];
-
-        webUrl.value = media === undefined ? "" : webAddress(media);
-        webUrl.error = "";
-      }
-
-      webDialog.show();
-    });
-
-    remove?.addEventListener("click", () => {
-      if (slot !== "music") forgetPicture(slot);
-
-      chosen[slot] = undefined;
-      showSlot(slot);
-      showSlot("background");
-      changed();
+      if (list !== undefined) askAddress({ list });
     });
   }
 
+  backgroundAdd?.addEventListener("select", (event) => {
+    if (!(event instanceof CustomEvent)) return;
+
+    const value: unknown = event.detail?.value;
+
+    if (value === "web") {
+      askAddress({ list: "background" });
+
+      return;
+    }
+
+    const shared = laidItems().find((item) => `use:${item.media.id}` === value);
+
+    if (shared === undefined) return;
+
+    background = shared.media;
+    showLists();
+    changed();
+  });
+
   webUse?.addEventListener("click", () => {
-    const slot = webSlot;
+    const target = asking;
 
     if (
       !(webUrl instanceof GwInput) ||
       !(webDialog instanceof GwDialog) ||
-      slot === undefined
+      target === undefined
     ) {
       return;
     }
 
-    const using = readWeb(slot, webUrl.value).then((trouble) => {
+    const using = readWeb(target, webUrl.value).then((trouble) => {
       if (trouble !== undefined) {
         webUrl.error = trouble;
         webUrl.focus();
@@ -934,21 +1204,11 @@ const program = async () => {
 
       webDialog.close("used");
       showProblem(undefined);
-      showSlot(slot);
-      showSlot("background");
+      showLists();
       changed();
     });
 
     if (webUse instanceof GwButton) void webUse.waitFor(using);
-  });
-
-  useFront?.addEventListener("click", () => {
-    if (chosen.front === undefined) return;
-
-    forgetPicture("background");
-    chosen.background = chosen.front;
-    showSlot("background");
-    changed();
   });
 
   // Shuffle keeps what's personal: the occasion typed, who it's to and from
@@ -1168,12 +1428,10 @@ for (const [element, icon] of [
   [shuffleMenu, phShuffle],
   [header?.querySelector(".card-back"), phArrowLeft],
   [deleteButton, phTrash],
-  [slots.front.web, phImage],
-  [slots.inside.web, phImage],
-  [slots.music.web, phMusicNotes],
-  [slots.front.remove, phTrash],
-  [slots.inside.remove, phTrash],
-  [slots.music.remove, phTrash],
+  [wholeButton, phLinkSimple],
+  ...[...(page?.querySelectorAll(".card-add") ?? [])].map(
+    (add) => [add, phPlus] as const,
+  ),
 ] as const) {
   element?.setAttribute("icon", icon);
 }
@@ -1221,15 +1479,6 @@ for (const select of form?.querySelectorAll("gw-select") ?? []) {
     select.options = openings.map((id) => ({
       value: id,
       label: openingNames[id],
-    }));
-  }
-
-  if (select.name === "fit" || select.name === "insideFit") {
-    const names = fitNames[select.name];
-
-    select.options = PictureFit.literals.map((id) => ({
-      value: id,
-      label: names[id],
     }));
   }
 }

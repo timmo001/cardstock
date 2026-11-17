@@ -9,13 +9,17 @@ import { fileURLToPath } from "node:url";
 import svgpath from "svgpath";
 
 const names = [
+  "arrow-down",
   "arrow-left",
+  "arrow-up",
   "cards",
   "copy",
+  "dots-three-vertical",
   "download-simple",
   "envelope-simple",
   "gear",
   "image",
+  "link-simple",
   "magnifying-glass",
   "music-notes",
   "palette",

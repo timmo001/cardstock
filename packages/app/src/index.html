@@ -152,11 +152,11 @@
               items='[{"value":"still","label":"Picture","description":"The front, as a PNG"},{"value":"mp4","label":"Video","description":"The card opening, as an MP4"},{"value":"gif","label":"GIF","description":"The card opening, smaller and looping"}]'
             ></gw-menu-button>
           </div>
-          <!-- Grouped by the part of the card each control changes: the
-               front, the inside, the page and sound around it, then its
-               looks, each under its own heading with room between -->
+          <!-- The occasion, then a panel for each part of the card: the
+               front, the inside, the page and sound around it, and its
+               looks. One panel opens at a time, and all start closed -->
           <form class="card-form" novalidate>
-            <gw-stack gap="l">
+            <gw-stack>
               <gw-stack class="card-group">
                 <gw-input
                   name="occasion"
@@ -171,166 +171,157 @@
                   size="small"
                 ></gw-menu-button>
               </gw-stack>
-              <gw-divider></gw-divider>
-              <section class="card-group" aria-labelledby="card-group-front">
-                <gw-section-title id="card-group-front">Front</gw-section-title>
-                <gw-input name="title" label="Title" maxlength="80"></gw-input>
-                <gw-setting-row class="card-picture" heading="Picture">
-                  <gw-row gap="s" nowrap>
-                    <gw-button
-                      class="card-picture-web"
-                      appearance="outlined"
-                      size="small"
-                      >From a link</gw-button
-                    >
-                    <gw-button
-                      class="card-picture-remove"
-                      variant="danger"
-                      appearance="plain"
-                      size="small"
-                      labels="hide"
-                      label="Remove the picture"
-                      hidden
-                      >Remove</gw-button
-                    >
-                  </gw-row>
-                  <gw-select
-                    name="fit"
-                    label="Sits"
-                    class="card-picture-fit"
-                    hidden
-                  ></gw-select>
-                </gw-setting-row>
-                <p class="card-pictures-guide">
-                  Need a picture?
-                  <a
-                    href="https://cardstock.timmo.dev/pictures"
-                    target="_blank"
-                    rel="noopener"
-                    >Where to find pictures</a
-                  >
-                </p>
-              </section>
-              <gw-divider></gw-divider>
-              <section class="card-group" aria-labelledby="card-group-inside">
-                <gw-section-title id="card-group-inside"
-                  >Inside</gw-section-title
+              <div class="card-panels">
+                <gw-expansion
+                  class="card-panel"
+                  heading="Design"
+                  description="Its look, colours, effect, size and how it opens"
                 >
-                <gw-input
-                  name="to"
-                  label="To"
-                  optional
-                  maxlength="60"
-                ></gw-input>
-                <gw-input
-                  name="message"
-                  label="Message"
-                  multiline
-                  rows="5"
-                  maxlength="600"
-                ></gw-input>
-                <gw-input name="from" label="From" maxlength="80"></gw-input>
-                <gw-setting-row class="card-inside" heading="Picture">
-                  <gw-row gap="s" nowrap>
-                    <gw-button
-                      class="card-inside-web"
-                      appearance="outlined"
-                      size="small"
-                      >From a link</gw-button
-                    >
-                    <gw-button
-                      class="card-inside-remove"
-                      variant="danger"
-                      appearance="plain"
-                      size="small"
-                      labels="hide"
-                      label="Remove the inside picture"
-                      hidden
-                      >Remove</gw-button
-                    >
-                  </gw-row>
-                  <gw-select
-                    name="insideFit"
-                    label="Sits"
-                    class="card-inside-fit"
-                    hidden
-                  ></gw-select>
-                </gw-setting-row>
-              </section>
-              <gw-divider></gw-divider>
-              <section class="card-group" aria-labelledby="card-group-page">
-                <gw-section-title id="card-group-page"
-                  >Page and sound</gw-section-title
+                  <div class="card-group">
+                    <gw-row class="card-looks">
+                      <gw-select name="design" label="Design"></gw-select>
+                      <gw-select name="palette" label="Colours"></gw-select>
+                      <gw-select name="effect" label="Effect"></gw-select>
+                      <gw-select name="size" label="Size"></gw-select>
+                      <gw-select name="opening" label="Opens"></gw-select>
+                    </gw-row>
+                  </div>
+                </gw-expansion>
+                <gw-expansion
+                  class="card-panel"
+                  heading="Front"
+                  description="Its title and pictures"
                 >
-                <gw-setting-row class="card-background" heading="Background">
-                  <gw-row gap="s" wrap>
-                    <gw-button
-                      class="card-background-web"
-                      appearance="outlined"
-                      size="small"
-                      >From a link</gw-button
-                    >
-                    <gw-button
-                      class="card-background-front"
-                      appearance="outlined"
-                      size="small"
-                      hidden
-                      >Use the front's</gw-button
-                    >
-                    <gw-button
-                      class="card-background-remove"
-                      variant="danger"
-                      appearance="plain"
-                      size="small"
-                      labels="hide"
-                      label="Remove the background"
-                      hidden
-                      >Remove</gw-button
-                    >
-                  </gw-row>
-                </gw-setting-row>
-                <gw-setting-row class="card-music" heading="Music">
-                  <gw-row gap="s" nowrap>
-                    <gw-button
-                      class="card-music-web"
-                      appearance="outlined"
-                      size="small"
-                      >From a link</gw-button
-                    >
-                    <gw-button
-                      class="card-music-remove"
-                      variant="danger"
-                      appearance="plain"
-                      size="small"
-                      labels="hide"
-                      label="Remove the music"
-                      hidden
-                      >Remove</gw-button
-                    >
-                  </gw-row>
-                </gw-setting-row>
-                <gw-setting-row
-                  heading="Links on the back"
-                  description="Lists the web addresses its pictures, video and music load from."
+                  <div class="card-group">
+                    <gw-input
+                      name="title"
+                      label="Title"
+                      maxlength="80"
+                    ></gw-input>
+                    <div class="card-list" data-list="front">
+                      <div class="card-list-head">
+                        <h3>Pictures</h3>
+                        <gw-button
+                          class="card-add"
+                          data-list="front"
+                          appearance="outlined"
+                          size="small"
+                          labels="auto"
+                          >Add a picture</gw-button
+                        >
+                      </div>
+                      <p class="card-list-none">
+                        None yet. The design decorates the front.
+                      </p>
+                      <div class="card-rows" role="list"></div>
+                    </div>
+                    <p class="card-pictures-guide">
+                      Need a picture?
+                      <a
+                        href="https://cardstock.timmo.dev/pictures"
+                        target="_blank"
+                        rel="noopener"
+                        >Where to find pictures</a
+                      >
+                    </p>
+                  </div>
+                </gw-expansion>
+                <gw-expansion
+                  class="card-panel"
+                  heading="Inside"
+                  description="Who it's to and from, the message and pictures"
                 >
-                  <gw-switch
-                    class="card-footnote"
-                    label="Links on the back"
-                    label-hidden
-                  ></gw-switch>
-                </gw-setting-row>
-              </section>
-              <gw-divider></gw-divider>
-              <section class="card-group" aria-labelledby="card-group-looks">
-                <gw-section-title id="card-group-looks">Looks</gw-section-title>
-                <gw-row class="card-looks">
-                  <gw-select name="design" label="Design"></gw-select>
-                  <gw-select name="palette" label="Colours"></gw-select>
-                  <gw-select name="effect" label="Effect"></gw-select>
-                  <gw-select name="size" label="Size"></gw-select>
-                  <gw-select name="opening" label="Opens"></gw-select>
-                </gw-row>
-              </section>
+                  <div class="card-group">
+                    <gw-input
+                      name="to"
+                      label="To"
+                      optional
+                      maxlength="60"
+                    ></gw-input>
+                    <gw-input
+                      name="message"
+                      label="Message"
+                      multiline
+                      rows="5"
+                      maxlength="600"
+                    ></gw-input>
+                    <gw-input
+                      name="from"
+                      label="From"
+                      maxlength="80"
+                    ></gw-input>
+                    <div class="card-list" data-list="inside">
+                      <div class="card-list-head">
+                        <h3>Pictures</h3>
+                        <gw-button
+                          class="card-add"
+                          data-list="inside"
+                          appearance="outlined"
+                          size="small"
+                          labels="auto"
+                          >Add a picture</gw-button
+                        >
+                      </div>
+                      <p class="card-list-none">
+                        None yet. The message has the inside to itself.
+                      </p>
+                      <div class="card-rows" role="list"></div>
+                    </div>
+                  </div>
+                </gw-expansion>
+                <gw-expansion
+                  class="card-panel"
+                  heading="Background and music"
+                  description="What's behind the card, and what plays as it opens"
+                >
+                  <div class="card-group">
+                    <div class="card-list" data-list="background">
+                      <div class="card-list-head">
+                        <h3>Background</h3>
+                        <gw-menu-button
+                          class="card-add card-add-background"
+                          data-list="background"
+                          label="Add a background"
+                          appearance="outlined"
+                          size="small"
+                          labels="auto"
+                        ></gw-menu-button>
+                      </div>
+                      <p class="card-list-none">
+                        None yet. The card sits on a plain page.
+                      </p>
+                      <div class="card-rows" role="list"></div>
+                    </div>
+                    <div class="card-list" data-list="music">
+                      <div class="card-list-head">
+                        <h3>Music</h3>
+                        <gw-button
+                          class="card-add"
+                          data-list="music"
+                          appearance="outlined"
+                          size="small"
+                          labels="auto"
+                          >Add music</gw-button
+                        >
+                      </div>
+                      <p class="card-list-none">
+                        None yet. The card opens to its own sounds.
+                      </p>
+                      <div class="card-rows" role="list"></div>
+                    </div>
+                    <gw-setting-row
+                      heading="Links on the back"
+                      description="Lists the web addresses its pictures, video and music load from."
+                    >
+                      <gw-switch
+                        class="card-footnote"
+                        label="Links on the back"
+                        label-hidden
+                      ></gw-switch>
+                    </gw-setting-row>
+                  </div>
+                </gw-expansion>
+              </div>
               <gw-row>
                 <gw-button type="submit">Save</gw-button>
               </gw-row>

@@ -110,7 +110,8 @@ const SaveFor = Schema.Struct({
   ),
 });
 
-const Nothing = Schema.Struct({});
+/** No input: an empty object, which agents read better than Struct({})'s "anything but null". */
+const Nothing = Schema.Record(Schema.String, Schema.Never);
 
 export type MakeCardInput = typeof MakeCard.Type;
 

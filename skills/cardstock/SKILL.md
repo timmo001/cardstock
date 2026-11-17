@@ -61,7 +61,15 @@ A link already sent can't change. To change a card, edit its spec and make a new
 
 ## In the browser
 
-When you're an agent in the user's browser and the Cardstock web app's card editor is open, its WebMCP tools change the card the user is watching: `make-card` (a template id, or an occasion and tone for Shuffle), `set-words`, `set-design`, `add-picture` (`on` front, left, right or background, with `fit`), `set-music`, `save`, `export` (still, mp4 or gif) and `get-card` for the spec and its link. Use them instead of the CLI there, with the same care over the words and pictures. Each answers in words when something isn't right; fix it and call again.
+The Cardstock web app's card editor offers WebMCP tools that change the card the user is watching: `make-card` (a template id, or an occasion and tone for Shuffle), `set-words`, `set-design`, `add-picture` (`on` front, left, right or background, with `fit`), `set-music`, `save`, `export` (still, mp4 or gif) and `get-card` for the spec and its link. When the user wants to watch the card come together, or to carry on in the editor themselves, use them instead of the CLI, with the same care over the words and pictures. Each answers in words when something isn't right; fix it and call again.
+
+They're there only in a browser that offers WebMCP, either built in (turned on in its flags) or added by an extension, and only while the editor is open:
+
+- As an agent in the user's browser, the tools are already yours.
+- As an agent on the user's computer that drives their browser, open `https://cards.timmo.dev/cards/new` in a tab (`?template=<id>` starts from a ready-made card). If your browser tool reads a page's WebMCP tools, list them there and call each by name with its input as JSON. Otherwise, run script in the page: `await document.modelContext.getTools()` lists them, and `await document.modelContext.executeTool(tool, input)` runs one and returns its answer as JSON text, with the words in `content[0].text`.
+- When the page has no `document.modelContext`, the browser doesn't offer WebMCP: use the CLI, and give the user the card's link, where **Edit a copy** opens it in the editor if they want to carry on there.
+
+`save` keeps the card in that browser, and `export` downloads the file there, so tell the user where to find it.
 
 ## New designs and effects
 

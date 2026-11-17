@@ -53,6 +53,12 @@ Each one works through the editor's own code, so it checks what the buttons
 check, and answers in words when something isn't right. The page's theme
 tools, `get-theme`, `list-themes` and `set-theme`, are there too.
 
+The browser needs WebMCP, built in and turned on in its flags or added by an
+extension. An agent on your computer that drives your browser can use the
+tools too: it opens the editor in a tab and calls them through its own
+WebMCP support, or by running `document.modelContext.getTools()` and
+`executeTool()` in the page. The skill tells agents how.
+
 ## Installing the skill
 
 With the [Skills CLI](https://skills.sh):

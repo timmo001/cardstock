@@ -59,6 +59,10 @@ Only `version` and `name` are needed. Saving under a name that's taken (ignoring
 
 A link already sent can't change. To change a card, edit its spec and make a new link with `card link`. Someone with only the link can open it in the web app and use **Edit a copy**.
 
+## In the browser
+
+When you're an agent in the user's browser and the Cardstock web app's card editor is open, its WebMCP tools change the card the user is watching: `make-card` (a template id, or an occasion and tone for Shuffle), `set-words`, `set-design`, `add-picture` (`on` front, left, right or background, with `fit`), `set-music`, `save`, `export` (still, mp4 or gif) and `get-card` for the spec and its link. Use them instead of the CLI there, with the same care over the words and pictures. Each answers in words when something isn't right; fix it and call again.
+
 ## New designs and effects
 
 A card can only name a design or effect that exists. Add a new one only as code, in a pull request to timmo001/cardstock for the user to review: a `defineDesign` in `packages/card/src/designs/` or a `defineEffect` in `packages/card/src/effects/`, listed in the registry.

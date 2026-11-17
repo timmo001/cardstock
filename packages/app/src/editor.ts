@@ -38,6 +38,7 @@ import {
 } from "@timmo001/cardstock-card";
 import {
   exportCard,
+  type ExportKind,
   exportKinds,
   exportName,
   exportTypes,
@@ -84,6 +85,7 @@ import {
   phTrash,
 } from "./icons.ts";
 import { takeCopy } from "./copy.ts";
+import { registerEditorTools } from "./editor-tools.ts";
 import { decodePicture, run, webBytes, webFile } from "./picture.ts";
 import { playCard } from "./player.ts";
 import { readMuted } from "./sound.ts";
@@ -935,6 +937,9 @@ const showLists = () => {
 interface Asking {
   readonly list: ListName;
   readonly item?: Item;
+  /** Where a new picture goes and how it sits, when an agent says. */
+  readonly on?: PicturePage;
+  readonly fit?: PictureFit;
 }
 
 let asking: Asking | undefined;
@@ -1008,6 +1013,7 @@ const readWeb = async (target: Asking, address: string) => {
   // A video can't be painted, so a page shows one at most
   const on: PicturePage =
     old?.on ??
+    target.on ??
     (list === "front"
       ? "front"
       : kind === "video" && hasVideo("left") && !hasVideo("right")
@@ -1032,7 +1038,7 @@ const readWeb = async (target: Asking, address: string) => {
     background = media;
   } else if (isPictureList(list)) {
     const items = pictures[list];
-    const item: Item = { media, on, fit: old?.fit ?? "frame" };
+    const item: Item = { media, on, fit: old?.fit ?? target.fit ?? "frame" };
     const at = old === undefined ? -1 : items.indexOf(old);
 
     if (at === -1) items.push(item);
@@ -1304,6 +1310,7 @@ const program = async () => {
     }
   });
 
+  /** Keeps the card on this device, answering with what went wrong. */
   const save = async () => {
     const fields = readFields();
     const occasionField = field("occasion");
@@ -1311,20 +1318,24 @@ const program = async () => {
     if (occasionField instanceof GwInput) occasionField.error = "";
 
     if (fields.occasion === "") {
+      const trouble = "Say what it's for, such as Christmas.";
+
       if (occasionField instanceof GwInput) {
-        occasionField.error = "Say what it's for, such as Christmas.";
+        occasionField.error = trouble;
         occasionField.focus();
       }
 
-      return;
+      return trouble;
     }
 
     const card = cardOf(fields);
 
     if (Option.isNone(card)) {
-      showProblem("Something in the card isn't right. Check each field.");
+      const trouble = "Something in the card isn't right. Check each field.";
 
-      return;
+      showProblem(trouble);
+
+      return trouble;
     }
 
     const savedNow = await Effect.runPromiseExit(
@@ -1338,11 +1349,12 @@ const program = async () => {
     );
 
     if (Exit.isFailure(savedNow)) {
-      showProblem(
-        "Couldn't keep the card on this device. Check the browser has room to store it.",
-      );
+      const trouble =
+        "Couldn't keep the card on this device. Check the browser has room to store it.";
 
-      return;
+      showProblem(trouble);
+
+      return trouble;
     }
 
     showProblem(undefined);
@@ -1355,6 +1367,8 @@ const program = async () => {
     showSaved();
 
     if (wasNew) history.replaceState(null, "", `/cards/${cardId}`);
+
+    return undefined;
   };
 
   form?.addEventListener("submit", (event) => {
@@ -1417,6 +1431,124 @@ const program = async () => {
       },
     );
   });
+
+  /** Shows what changed: the lists, Save and the preview. */
+  const showChange = () => {
+    showLists();
+    changed();
+  };
+
+  registerEditorTools({
+    read: async () => {
+      const card = cardOf(readFields(), "Card");
+
+      if (Option.isNone(card)) {
+        return "Something in the card isn't right. Check each field.";
+      }
+
+      const link = await Effect.runPromiseExit(
+        wholeCardUrl(card.value, location.origin),
+      );
+
+      return Exit.isSuccess(link)
+        ? { spec: card.value, link: link.value }
+        : "Couldn't put the card in a link.";
+    },
+    start: async (input) => {
+      const from =
+        input.template === undefined
+          ? Effect.runSync(
+              shuffleCard(
+                input.tone === undefined
+                  ? { occasion: input.occasion ?? "" }
+                  : { occasion: input.occasion ?? "", tone: input.tone },
+              ),
+            ).card
+          : templateById(input.template)?.card;
+
+      if (from === undefined) return "There's no ready-made card with that id.";
+
+      pictures.front.length = 0;
+      pictures.inside.length = 0;
+      background = undefined;
+      music = undefined;
+      images = new Map();
+
+      const fields = fieldsOf(from);
+
+      writeFields(
+        input.occasion === undefined
+          ? fields
+          : { ...fields, occasion: input.occasion },
+      );
+      showChange();
+
+      return undefined;
+    },
+    words: (input) => {
+      writeFields({ ...readFields(), ...input });
+      changed();
+
+      return undefined;
+    },
+    design: (input) => {
+      const now = readFields();
+      const design = input.design ?? now.design;
+
+      if (!isDesignId(design)) return "Pick a design first.";
+
+      const own: readonly string[] = paletteIds[design];
+      const keeps = input.design === undefined || input.design === now.design;
+      const palette = input.palette ?? (keeps ? now.palette : own[0]) ?? "";
+
+      if (!own.includes(palette)) {
+        return `${palette} isn't one of ${design}'s colourways: ${own.join(", ")}.`;
+      }
+
+      writeFields({
+        ...now,
+        design,
+        palette,
+        effect: input.effect ?? now.effect,
+        size: input.size ?? now.size,
+        opening: input.opening ?? now.opening,
+      });
+      changed();
+
+      return undefined;
+    },
+    picture: async ({ url, on, fit }) => {
+      const list = Match.value(on).pipe(
+        Match.when("background", () => "background" as const),
+        Match.when("front", () => "front" as const),
+        Match.orElse(() => "inside" as const),
+      );
+
+      const page = on === "background" ? undefined : on;
+
+      const target: Asking =
+        page === undefined
+          ? { list }
+          : fit === undefined
+            ? { list, on: page }
+            : { list, on: page, fit };
+
+      const trouble = await readWeb(target, url);
+
+      if (trouble === undefined) showChange();
+
+      return trouble;
+    },
+    music: async (url) => {
+      const trouble = await readWeb({ list: "music" }, url);
+
+      if (trouble === undefined) showChange();
+
+      return trouble;
+    },
+    save,
+    saveFor: saveForChat,
+  });
 };
 
 // Saving for a chat: the card as it is now, shared where the device can
@@ -1442,41 +1574,48 @@ const deliver = async (file: File) => {
   }, 60_000);
 };
 
-exportMenu?.addEventListener("select", (event) => {
-  if (
-    !(event instanceof CustomEvent) ||
-    !(exportMenu instanceof GwMenuButton)
-  ) {
-    return;
-  }
-
-  const kind: unknown = event.detail?.value;
+/** Saves the card as it is now for a chat, answering with what went wrong. */
+const saveForChat = async (kind: ExportKind) => {
   const card = cardOf(readFields(), "Card");
 
-  if (!isExportKind(kind) || Option.isNone(card)) return;
+  if (Option.isNone(card)) {
+    return "Something in the card isn't right. Check each field.";
+  }
 
-  exportMenu.loading = true;
+  if (exportMenu instanceof GwMenuButton) exportMenu.loading = true;
+
   showProblem(undefined);
 
-  void Effect.runPromiseExit(exportCard(card.value, kind, { images })).then(
-    async (made) => {
-      exportMenu.loading = false;
-
-      if (Exit.isFailure(made)) {
-        const error = Option.getOrUndefined(Exit.findErrorOption(made));
-
-        showProblem(error?.message ?? "Couldn't save the card for a chat.");
-
-        return;
-      }
-
-      await deliver(
-        new File([made.value], exportName(card.value, kind), {
-          type: exportTypes[kind].type,
-        }),
-      );
-    },
+  const made = await Effect.runPromiseExit(
+    exportCard(card.value, kind, { images }),
   );
+
+  if (exportMenu instanceof GwMenuButton) exportMenu.loading = false;
+
+  if (Exit.isFailure(made)) {
+    const error = Option.getOrUndefined(Exit.findErrorOption(made));
+    const trouble = error?.message ?? "Couldn't save the card for a chat.";
+
+    showProblem(trouble);
+
+    return trouble;
+  }
+
+  await deliver(
+    new File([made.value], exportName(card.value, kind), {
+      type: exportTypes[kind].type,
+    }),
+  );
+
+  return undefined;
+};
+
+exportMenu?.addEventListener("select", (event) => {
+  if (!(event instanceof CustomEvent)) return;
+
+  const kind: unknown = event.detail?.value;
+
+  if (isExportKind(kind)) void saveForChat(kind);
 });
 
 for (const [element, icon] of [

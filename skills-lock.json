@@ -1,0 +1,61 @@
+{
+  "version": 2,
+  "skills": {
+    "docs-kit": {
+      "source": "timmo001/groundwork",
+      "sourceType": "github",
+      "skillPath": "skills/docs-kit/SKILL.md",
+      "computedHash": "1ad72c4452267290499340c1fab76f74df783715f4b1d48c540466da2765acd5",
+      "installMode": "copy"
+    },
+    "effect": {
+      "source": "kitlangton/skills",
+      "sourceType": "github",
+      "skillPath": "skills/effect/SKILL.md",
+      "computedHash": "08df6d7dd3d3f3d5a6658c17b90f6b776912fd566d15c85ac6140030fafc1a9c",
+      "installMode": "copy"
+    },
+    "groundwork-interfaces": {
+      "source": "timmo001/groundwork",
+      "sourceType": "github",
+      "skillPath": "skills/groundwork-interfaces/SKILL.md",
+      "computedHash": "6cc009e5055f20ad255bd8b336a1a9b75bb7b0c24520a0aa7c105ac040bf8b68",
+      "installMode": "copy"
+    },
+    "groundwork-themes": {
+      "source": "timmo001/groundwork",
+      "sourceType": "github",
+      "skillPath": "skills/groundwork-themes/SKILL.md",
+      "computedHash": "cd75d7fcdfaaea98b722ff6989a474c27bd036e04f3e5b9ed7586d6fc1442c26",
+      "installMode": "copy"
+    },
+    "task-runners": {
+      "source": "timmo001/skills",
+      "sourceType": "github",
+      "skillPath": "task-runners/SKILL.md",
+      "computedHash": "45fd9cb4566ad3813fb35d1f34417a8162a4d847f5b4c7a1371fa8315c1ace60",
+      "installMode": "copy"
+    },
+    "testing": {
+      "source": "timmo001/skills",
+      "sourceType": "github",
+      "skillPath": "testing/SKILL.md",
+      "computedHash": "10b4e6bad650f61d1eaf9441c8c46232f87c73b41947edc1cdd5be97e2c09175",
+      "installMode": "copy"
+    },
+    "types-enforce-ts": {
+      "source": "timmo001/skills",
+      "sourceType": "github",
+      "skillPath": "types-enforce-ts/SKILL.md",
+      "computedHash": "6b0cfce721d07db30f81c150c13b9300d2748a6f61686d03d586b4ebee9ce526",
+      "installMode": "copy"
+    },
+    "writing-style": {
+      "source": "timmo001/skills",
+      "sourceType": "github",
+      "skillPath": "writing-style/SKILL.md",
+      "computedHash": "deaf4cda32aa72fae1fdd5dafe32ede6271904980aedd52039674994ac7ca631",
+      "installMode": "copy"
+    }
+  }
+}

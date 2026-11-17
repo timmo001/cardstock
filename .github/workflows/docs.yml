@@ -1,0 +1,36 @@
+---
+# Checks the docs site's content and links. The Deploy workflow deploys it
+# from main as the cardstock-docs Worker.
+name: Docs
+
+on:
+  # Every pull request, since the check is required
+  pull_request: {}
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/docs.yml
+      - bun.lock
+      - docs/**
+      - mise.lock
+      - mise.toml
+      - package.json
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    uses: timmo001/workflows/.github/workflows/run-mise-task.yml@db6f3692a31de24d2bee17e505dfd2bf3fd5a076 # 20261116.1
+    with:
+      name: Check docs
+      task: docs:check
+      install-args: bun node
+      # Blume reads last-modified dates from git
+      fetch-depth: 0

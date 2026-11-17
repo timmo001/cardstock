@@ -1,0 +1,20 @@
+{
+  "kind": "solved",
+  "id": "cardstock",
+  "name": "Cardstock",
+  "description": "Slate's purple-grey with marker pink. Round, with pill buttons and soft borders.",
+  "background": "#221b25",
+  "accent": "#ea74b1",
+  "style": {
+    "font": "Figtree",
+    "mono": "Geist Mono",
+    "radius": { "panel": 20, "control": 999, "chip": 999 },
+    "border": { "width": 1, "strength": "soft" },
+    "weights": { "regular": 400, "strong": 600 },
+    "density": "normal",
+    "capitals": false,
+    "link": { "color": "accent", "underline": "thin" },
+    "surfaceAccent": "none",
+    "rows": "cards"
+  }
+}

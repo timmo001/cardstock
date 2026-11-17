@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "occasion": "Just because",
+  "design": "birthday",
+  "palette": "midnight",
+  "effect": "confetti",
+  "front": { "title": "Hello from Cardstock" },
+  "inside": {
+    "message": "This is a demo card, made by the CLI from fixture text in the docs folder. Your own cards open only for whoever holds their link, just like this one.",
+    "from": "Cardstock"
+  },
+  "media": []
+}

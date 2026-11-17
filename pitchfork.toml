@@ -1,0 +1,26 @@
+# Keeps Cardstock's dev processes running in the background, outside the
+# invoking shell or agent. Manage each with its serve:<daemon> mise tasks.
+
+# The web app, built then served, at https://app.cardstock.localhost.
+[daemons.app]
+run = 'exec mise run app:dev'
+port = { expect = [7470], bump = 10 }
+ready_cmd = 'curl -fsS "http://127.0.0.1:$PORT/"'
+health_cmd = 'curl -fsS "http://127.0.0.1:$PORT/"'
+retry = true
+
+# The renderer's preview page, for designs and effects, at https://card.cardstock.localhost.
+[daemons.card]
+run = 'exec mise run card:preview'
+port = { expect = [7480], bump = 10 }
+ready_cmd = 'curl -fsS "http://127.0.0.1:$PORT/"'
+health_cmd = 'curl -fsS "http://127.0.0.1:$PORT/"'
+retry = true
+
+# The docs site's dev server, at https://docs.cardstock.localhost.
+[daemons.docs]
+run = 'exec mise run docs:dev --host 127.0.0.1 --port "$PORT"'
+port = { expect = [7460], bump = 10 }
+ready_cmd = 'curl -fsS "http://127.0.0.1:$PORT/"'
+health_cmd = 'curl -fsS "http://127.0.0.1:$PORT/"'
+retry = true

@@ -1,0 +1,36 @@
+{
+  "name": "@timmo001/cardstock-app",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run src/build.ts",
+    "dev": "bun run src/build.ts && bun run src/serve.ts",
+    "icons": "bun scripts/icons.ts",
+    "test": "bun test --pass-with-no-tests",
+    "lint": "oxlint .",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@fontsource-variable/figtree": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@timmo001/cardstock-card": "workspace:*",
+    "@timmo001/cardstock-server": "workspace:*",
+    "@timmo001/groundwork-pwa": "0.51.0",
+    "@timmo001/groundwork-tokens": "0.51.0",
+    "@timmo001/groundwork-ui": "0.51.0",
+    "effect": "4.1.4"
+  },
+  "devDependencies": {
+    "@effect/tsgo": "0.69.0",
+    "@oxlint/plugins": "1.93.0",
+    "@phosphor-icons/core": "2.1.1",
+    "@timmo001/oxlint-rules": "0.7.1",
+    "@types/bun": "1.4.4",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2007",
+    "svgpath": "2.6.0",
+    "typescript": "7.0.2"
+  }
+}

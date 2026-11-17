@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.mise/
+bun.lock
+mise.lock
+LICENSE
+.agents/skills/
+skills-lock.json
+# Agent instructions are written by hand; a reformat only adds diff noise.
+AGENTS.md
+.astro/
+.blume/
+.blume-verify/
+.wrangler/
+packages/server/worker-configuration.d.ts

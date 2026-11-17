@@ -1,0 +1,35 @@
+---
+/**
+ * docs-kit's header search in the Cardstock theme, with the mode picker
+ * offering Auto, Light and Dark only. Cardstock has one theme and no Darker
+ * mode, but docs-kit's picker always lists Darker, so the script below drops
+ * it before the picker's own script reads the modes.
+ */
+import HeaderSearch from "@timmo001/docs-kit/blume/header-search.astro";
+---
+
+<HeaderSearch {...Astro.props} defaultTheme="cardstock" />
+
+<script is:inline>
+  (() => {
+    for (const control of document.querySelectorAll(
+      "gw-segmented[data-gw-mode-select]",
+    )) {
+      const modes = JSON.parse(control.dataset.modes ?? "[]").filter(
+        (mode) => mode.value !== "darker",
+      );
+
+      control.dataset.modes = JSON.stringify(modes);
+      control.setAttribute("options", JSON.stringify(modes));
+    }
+
+    // A Darker pick from before keeps the page in plain Dark
+    try {
+      localStorage.removeItem("gw-darker");
+    } catch {
+      // Blocked: nothing was stored
+    }
+
+    document.documentElement.removeAttribute("data-gw-darker");
+  })();
+</script>

@@ -1,0 +1,54 @@
+---
+title: Overview
+description: Greeting cards an agent makes from a description, opened by link as a 3D paper card.
+---
+
+Cardstock makes greeting cards. You tell an agent what the card is for, and
+it writes the words and picks pictures from around the web. You get the
+card's link, with the whole card sealed in it, and whoever opens it sees an
+envelope that opens into a paper card, with the effect and music you chose.
+
+You can change any card afterwards in the web app on your phone or computer,
+and save it as a still, an MP4 or a GIF to send in a chat.
+
+## See one
+
+[Open the demo card](https://cards.timmo.dev/c#AbqPrubkC2QAMegzrHU_nXnRnhaySrpzJvZ4Q4wwo6dGbdzqDwFU0iKfT8uEgg60FlIN7yGuWtVjLAOi3pwgxIK4qcWUXnSS2_EEd4lt23QPHcN6RHeVlQWkrJUM-bgQqIeXV48hFSN9R_ur-yUtCaXKgCgYWox84ro_VqLaXEq6nrt0UE2NVtP_H5cLNiT1ZPlOMc36DhB0a51wsCXC0Yv4081SG8n2Q1wUk_ktej60m38GjblB0dsjW3-5bsZJeg6BpiBiqLQOhSNjZWI4qsF0GBiXQMVeGdFWD_xdICztdGMTWFzCCqwj9JoGsXQqmj5pkwsU5RckGGdZ5jeNXa_iwxES2mDm6fv2C5814xoBvByF6jctLxjhtGoVcht9Ny-ZeQY7).
+It was made with `cardstock card link --file docs/demo-card.json` from the
+text in the repository, and its link is printed here on purpose. Everything
+after the `#` is the whole card, sealed with its key: it stays in your
+browser and never reaches the server, which stores nothing.
+
+## What it does
+
+- **Cards from a description:** an agent turns what you ask for into a card,
+  with pictures, video and music from their web addresses. See
+  [Making a card](/making-a-card) and [Where to find pictures](/pictures).
+- **The card in its link:** the whole card is sealed into its link, so
+  nothing is stored and the server never sees it. See
+  [Links and privacy](/links-and-privacy).
+- **A 3D paper card:** the envelope, the fold and the paper are drawn with
+  three.js on WebGPU, falling back to WebGL.
+- **The web app:** make and change cards, kept on the device you made them
+  on, installed on a phone or computer. See [The web app](/web-app).
+- **For agents:** the `cardstock` CLI with Code Mode and MCP, and a skill that
+  tells an agent how to use them. See [CLI](/cli) and [Agents](/agents).
+
+## Parts
+
+| Part              | What it is                                                         |
+| ----------------- | ------------------------------------------------------------------ |
+| `packages/card`   | The card format, encryption, renderer, designs, effects and export |
+| `packages/app`    | The web app, with the viewer and editor                            |
+| `packages/server` | The Cloudflare Worker that serves the app and the picture fetcher  |
+| `packages/cli`    | The `cardstock` CLI, with Code Mode and MCP for agents             |
+| `docs`            | This site                                                          |
+
+## Machine-readable docs
+
+| URL                                       | Use                                      |
+| ----------------------------------------- | ---------------------------------------- |
+| https://cardstock.timmo.dev/llms.txt      | Compact page index                       |
+| https://cardstock.timmo.dev/llms-full.txt | Full docs bundle                         |
+| https://cardstock.timmo.dev/mcp           | Hosted MCP (search, page and navigation) |
+| `/{route}.md`                             | One page as Markdown                     |

@@ -1,0 +1,14 @@
+{
+  "name": "cardstock",
+  "description": "Agent Skills for Cardstock",
+  "owner": { "name": "Aidan Timson", "url": "https://github.com/timmo001" },
+  "plugins": [
+    {
+      "name": "cardstock",
+      "description": "Make, change and send greeting cards through Cardstock's Code Mode tools, MCP server or CLI",
+      "license": "Apache-2.0",
+      "source": "./skills",
+      "skills": "./"
+    }
+  ]
+}

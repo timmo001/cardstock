@@ -1,0 +1,32 @@
+{
+  "name": "@timmo001/cardstock-cli",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cardstock": "./src/cli.ts"
+  },
+  "scripts": {
+    "build": "bun build --compile src/cli.ts --outfile dist/cardstock",
+    "test": "bun test --pass-with-no-tests",
+    "lint": "oxlint .",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@effect/platform-bun": "4.1.4",
+    "@timmo001/cardstock-card": "workspace:*",
+    "@timmo001/cardstock-server": "workspace:*",
+    "effect": "4.1.4",
+    "playwright-core": "1.65.1"
+  },
+  "devDependencies": {
+    "@effect/tsgo": "0.69.0",
+    "@oxlint/plugins": "1.93.0",
+    "@timmo001/oxlint-rules": "0.7.1",
+    "@types/bun": "1.4.4",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2007",
+    "typescript": "7.0.2"
+  }
+}

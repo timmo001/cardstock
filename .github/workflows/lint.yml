@@ -1,0 +1,38 @@
+---
+# Checks what every package shares: formatting, and the shared Actions,
+# Markdown, YAML and JSON lints.
+name: Lint
+
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    uses: timmo001/workflows/.github/workflows/run-mise-task.yml@db6f3692a31de24d2bee17e505dfd2bf3fd5a076 # 20261116.1
+    with:
+      name: Format
+      task: format:check
+      install-args: bun node
+
+  actionlint:
+    uses: timmo001/workflows/.github/workflows/lint-actionlint.yml@db6f3692a31de24d2bee17e505dfd2bf3fd5a076 # 20261116.1
+
+  markdownlint:
+    uses: timmo001/workflows/.github/workflows/lint-markdownlint.yml@db6f3692a31de24d2bee17e505dfd2bf3fd5a076 # 20261116.1
+
+  yamllint:
+    uses: timmo001/workflows/.github/workflows/lint-yamllint.yml@db6f3692a31de24d2bee17e505dfd2bf3fd5a076 # 20261116.1
+
+  jsonlint:
+    uses: timmo001/workflows/.github/workflows/lint-jsonlint.yml@db6f3692a31de24d2bee17e505dfd2bf3fd5a076 # 20261116.1

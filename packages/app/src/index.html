@@ -1,0 +1,434 @@
+<!doctype html>
+<!-- Cardstock's page: your cards, and the viewer that opens one from its
+     link. The script fills the page in. -->
+<html lang="en" data-gw-theme="cardstock">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cardstock</title>
+    <!-- Every card's link shows the same sealed envelope, so a preview never
+         gives away what's inside, or who it's from -->
+    <meta property="og:title" content="You've got a card" />
+    <meta property="og:description" content="Open it to see what's inside." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cardstock" />
+    <meta
+      property="og:image"
+      content="https://cards.timmo.dev/og-envelope.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A sealed envelope" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="robots" content="noindex" />
+    <!-- Every page is served the same file, so its own files resolve from
+         the root rather than the page's path -->
+    <base href="/" />
+    <!-- pwa:head -->
+    <!-- cardstock:theme -->
+    <link rel="icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <gw-app-bar>
+      <a slot="brand" class="brand" href="./">
+        <img src="icons/icon-192.png" alt="" width="24" height="24" />
+        Cardstock
+      </a>
+      <gw-button variant="neutral" appearance="plain"
+        ><a href="./" data-nav="cards">Cards</a></gw-button
+      >
+      <gw-button variant="neutral" appearance="plain"
+        ><a href="browse" data-nav="browse">Browse</a></gw-button
+      >
+      <!-- One theme, so only the modes show -->
+      <gw-theme-picker
+        slot="actions"
+        modes="auto light dark"
+        no-import
+        no-reset
+      ></gw-theme-picker>
+      <gw-button
+        slot="actions"
+        variant="neutral"
+        appearance="plain"
+        labels="hide"
+        label="Settings"
+        ><a href="settings" data-nav="settings">Settings</a></gw-button
+      >
+    </gw-app-bar>
+    <gw-page>
+      <gw-stack class="cards" hidden>
+        <gw-page-header
+          heading="Cards"
+          description="The cards you've made on this device. They stay here; each one goes out as its link."
+        >
+          <gw-button slot="actions" class="cards-new" href="cards/new"
+            >New card</gw-button
+          >
+        </gw-page-header>
+        <gw-grid class="cards-list" role="list" aria-label="Cards"></gw-grid>
+        <gw-empty-state class="cards-empty" heading="No cards yet" hidden>
+          Make one here, or open a card's link and edit a copy.
+        </gw-empty-state>
+      </gw-stack>
+      <!-- Browse, at /browse: ready-made cards by category, with filters -->
+
+      <gw-stack class="browse" hidden>
+        <gw-page-header
+          heading="Browse"
+          description="Ready-made cards to start from. Pick one, change the words, and send it."
+        >
+          <gw-button
+            slot="actions"
+            class="browse-shuffle"
+            href="cards/new?shuffle"
+            appearance="outlined"
+            >Shuffle</gw-button
+          >
+        </gw-page-header>
+        <div class="browse-layout">
+          <aside class="browse-sidebar" aria-label="Filters">
+            <div class="browse-sidebar-header">
+              <h2>Filters</h2>
+              <gw-button
+                class="browse-clear"
+                size="small"
+                variant="neutral"
+                appearance="plain"
+                >Clear all</gw-button
+              >
+            </div>
+            <div class="browse-filters"></div>
+          </aside>
+          <div class="browse-main">
+            <p class="browse-shown" aria-live="polite"></p>
+            <div class="browse-results"></div>
+            <gw-empty-state
+              class="browse-empty"
+              heading="No cards match"
+              hidden
+            >
+              Untick a filter, or clear them all, to see more.
+            </gw-empty-state>
+          </div>
+        </div>
+      </gw-stack>
+      <!-- One card, at /cards/<id>, or /cards/new -->
+      <gw-stack class="card" hidden>
+        <gw-page-header heading="Card">
+          <gw-button
+            slot="start"
+            class="card-back"
+            href="./"
+            variant="neutral"
+            appearance="plain"
+            labels="hide"
+            >All cards</gw-button
+          >
+          <gw-button
+            slot="actions"
+            class="card-delete"
+            variant="danger"
+            appearance="outlined"
+            hidden
+            >Delete</gw-button
+          >
+        </gw-page-header>
+        <gw-alert class="card-problem" tone="danger" hidden></gw-alert>
+        <div class="card-editor" hidden>
+          <div class="card-preview">
+            <div class="card-stage"></div>
+            <gw-segmented
+              class="card-view"
+              label="Show"
+              value="out"
+              options='[{"value":"sealed","label":"Envelope"},{"value":"out","label":"Front"},{"value":"open","label":"Inside"}]'
+            ></gw-segmented>
+            <gw-menu-button
+              class="card-export"
+              label="Save for a chat"
+              appearance="outlined"
+              items='[{"value":"still","label":"Picture","description":"The front, as a PNG"},{"value":"mp4","label":"Video","description":"The card opening, as an MP4"},{"value":"gif","label":"GIF","description":"The card opening, smaller and looping"}]'
+            ></gw-menu-button>
+          </div>
+          <form class="card-form" novalidate>
+            <gw-stack>
+              <gw-input
+                name="occasion"
+                label="Occasion"
+                maxlength="60"
+                hint="What it's for, such as Mum's 60th. Only you see it."
+              ></gw-input>
+              <gw-menu-button
+                class="card-shuffle"
+                label="Shuffle"
+                appearance="outlined"
+                size="small"
+              ></gw-menu-button>
+              <gw-row class="card-looks">
+                <gw-select name="design" label="Design"></gw-select>
+                <gw-select name="palette" label="Colours"></gw-select>
+                <gw-select name="effect" label="Effect"></gw-select>
+                <gw-select name="size" label="Size"></gw-select>
+                <gw-select name="opening" label="Opens"></gw-select>
+              </gw-row>
+              <gw-input name="title" label="Front" maxlength="80"></gw-input>
+              <gw-input name="to" label="To" optional maxlength="60"></gw-input>
+              <gw-input
+                name="message"
+                label="Message"
+                multiline
+                rows="5"
+                maxlength="600"
+              ></gw-input>
+              <gw-input name="from" label="From" maxlength="80"></gw-input>
+              <gw-setting-row class="card-picture" heading="Front picture">
+                <gw-row gap="s" nowrap>
+                  <gw-button
+                    class="card-picture-web"
+                    appearance="outlined"
+                    size="small"
+                    >From a link</gw-button
+                  >
+                  <gw-button
+                    class="card-picture-remove"
+                    variant="danger"
+                    appearance="plain"
+                    size="small"
+                    labels="hide"
+                    label="Remove the picture"
+                    hidden
+                    >Remove</gw-button
+                  >
+                </gw-row>
+                <gw-select
+                  name="fit"
+                  label="Sits"
+                  class="card-picture-fit"
+                  hidden
+                ></gw-select>
+              </gw-setting-row>
+              <gw-setting-row class="card-inside" heading="Inside picture">
+                <gw-row gap="s" nowrap>
+                  <gw-button
+                    class="card-inside-web"
+                    appearance="outlined"
+                    size="small"
+                    >From a link</gw-button
+                  >
+                  <gw-button
+                    class="card-inside-remove"
+                    variant="danger"
+                    appearance="plain"
+                    size="small"
+                    labels="hide"
+                    label="Remove the inside picture"
+                    hidden
+                    >Remove</gw-button
+                  >
+                </gw-row>
+                <gw-select
+                  name="insideFit"
+                  label="Sits"
+                  class="card-inside-fit"
+                  hidden
+                ></gw-select>
+              </gw-setting-row>
+              <gw-setting-row class="card-background" heading="Background">
+                <gw-row gap="s" wrap>
+                  <gw-button
+                    class="card-background-web"
+                    appearance="outlined"
+                    size="small"
+                    >From a link</gw-button
+                  >
+                  <gw-button
+                    class="card-background-front"
+                    appearance="outlined"
+                    size="small"
+                    hidden
+                    >Use the front's</gw-button
+                  >
+                  <gw-button
+                    class="card-background-remove"
+                    variant="danger"
+                    appearance="plain"
+                    size="small"
+                    labels="hide"
+                    label="Remove the background"
+                    hidden
+                    >Remove</gw-button
+                  >
+                </gw-row>
+              </gw-setting-row>
+              <p class="card-pictures-guide">
+                Need a picture?
+                <a
+                  href="https://cardstock.timmo.dev/pictures"
+                  target="_blank"
+                  rel="noopener"
+                  >Where to find pictures</a
+                >
+              </p>
+              <gw-setting-row class="card-music" heading="Music">
+                <gw-row gap="s" nowrap>
+                  <gw-button
+                    class="card-music-web"
+                    appearance="outlined"
+                    size="small"
+                    >From a link</gw-button
+                  >
+                  <gw-button
+                    class="card-music-remove"
+                    variant="danger"
+                    appearance="plain"
+                    size="small"
+                    labels="hide"
+                    label="Remove the music"
+                    hidden
+                    >Remove</gw-button
+                  >
+                </gw-row>
+              </gw-setting-row>
+              <gw-setting-row
+                heading="Links on the back"
+                description="Lists the web addresses its pictures, video and music load from."
+              >
+                <gw-switch
+                  class="card-footnote"
+                  label="Links on the back"
+                  label-hidden
+                ></gw-switch>
+              </gw-setting-row>
+              <gw-row>
+                <gw-button type="submit">Save</gw-button>
+              </gw-row>
+            </gw-stack>
+          </form>
+        </div>
+        <gw-section class="card-links" heading="Link" hidden>
+          <gw-button
+            slot="actions"
+            class="card-whole-new"
+            appearance="outlined"
+            size="small"
+            >Card in a link</gw-button
+          >
+          <p>
+            The whole card goes in its link, so send that. Its pictures, video
+            and music load from their web addresses.
+          </p>
+        </gw-section>
+        <gw-empty-state class="card-missing" hidden>
+          <gw-button slot="actions" href="./">See your cards</gw-button>
+        </gw-empty-state>
+        <gw-dialog class="card-delete-dialog" heading="Delete this card?">
+          <p>
+            It goes from this device. Links you've sent still open it, as the
+            card is in each one.
+          </p>
+          <gw-button
+            slot="actions"
+            variant="neutral"
+            appearance="plain"
+            value=""
+            >Cancel</gw-button
+          >
+          <gw-button slot="actions" variant="danger" value="delete"
+            >Delete</gw-button
+          >
+        </gw-dialog>
+        <gw-dialog class="card-whole-dialog" heading="The card in a link">
+          <p>
+            The whole card is sealed in this link, so nothing is stored. Like a
+            shared Drive link, whoever has it can open the card, and it can't be
+            stopped or changed once it's sent.
+          </p>
+          <gw-copy class="card-whole-copy" label="The card's link"></gw-copy>
+        </gw-dialog>
+        <gw-dialog class="card-web-dialog" heading="Use a file from the web">
+          <gw-stack gap="m">
+            <p>
+              Paste the public web address of a picture, video or track. It
+              loads from there each time the card opens, so it travels in the
+              card's link.
+            </p>
+            <gw-input
+              name="web-url"
+              label="Address"
+              type="url"
+              placeholder="https://"
+            ></gw-input>
+          </gw-stack>
+          <gw-button
+            slot="actions"
+            variant="neutral"
+            appearance="plain"
+            value=""
+            >Cancel</gw-button
+          >
+          <gw-button slot="actions" class="card-web-use">Use it</gw-button>
+        </gw-dialog>
+      </gw-stack>
+      <!-- Saving a card for `cardstock export`, at /export#<the card's link> -->
+      <gw-stack class="export" hidden>
+        <gw-page-header heading="Export"></gw-page-header>
+        <p class="export-status">Opening the card…</p>
+      </gw-stack>
+      <!-- Settings, at /settings -->
+      <gw-stack class="settings" hidden>
+        <gw-page-header
+          heading="Settings"
+          description="How cards sound on this device."
+        ></gw-page-header>
+        <gw-section heading="Sound" level="2">
+          <gw-setting-row
+            heading="Card sounds"
+            description="The paper, the envelope and any music when a card opens here."
+          >
+            <gw-switch
+              class="settings-sound"
+              label="Card sounds"
+              label-hidden
+            ></gw-switch>
+          </gw-setting-row>
+        </gw-section>
+      </gw-stack>
+    </gw-page>
+    <!-- The viewer, shown on /c/ pages only -->
+    <main class="viewer" hidden>
+      <canvas
+        class="viewer-card"
+        tabindex="0"
+        aria-label="Your card. Tap it, or press Enter, to open it."
+      ></canvas>
+      <p class="viewer-hint" aria-live="polite"></p>
+      <gw-button
+        class="viewer-mute"
+        appearance="plain"
+        variant="neutral"
+        labels="hide"
+        toggle
+        hidden
+        >Sound</gw-button
+      >
+      <gw-button
+        class="viewer-edit"
+        appearance="plain"
+        variant="neutral"
+        size="small"
+        hidden
+        >Edit a copy</gw-button
+      >
+      <gw-empty-state
+        class="viewer-missing"
+        heading="This card isn't available"
+        hidden
+      >
+        Check you have the whole link, or ask whoever sent it for a new one.
+      </gw-empty-state>
+    </main>
+    <script type="module" src="index.js"></script>
+  </body>
+</html>

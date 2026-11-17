@@ -1,0 +1,35 @@
+---
+# Checks the server: the cardstock Worker. The Deploy workflow
+# deploys it from main.
+name: Server
+
+on:
+  # Every pull request, since the check is required
+  pull_request: {}
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/server.yml
+      - bun.lock
+      - mise.lock
+      - mise.toml
+      - package.json
+      - packages/card/**
+      - packages/server/**
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    uses: timmo001/workflows/.github/workflows/run-mise-task.yml@db6f3692a31de24d2bee17e505dfd2bf3fd5a076 # 20261116.1
+    with:
+      name: Check server
+      task: server:check
+      install-args: bun node

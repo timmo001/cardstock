@@ -1,0 +1,29 @@
+{
+  "name": "cardstock",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.4",
+  "workspaces": [
+    "packages/*",
+    "docs"
+  ],
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@alchemy.run/cloudflare": "2.0.0-beta.87",
+    "@alchemy.run/frontend-frameworks": "2.0.0-beta.87",
+    "@alchemy.run/github": "2.0.0-beta.87",
+    "@effect/platform-bun": "4.1.4",
+    "@timmo001/docs-kit": "0.51.0",
+    "@types/bun": "1.4.4",
+    "alchemy": "2.0.0-beta.87",
+    "effect": "4.1.4",
+    "prettier": "3.10.1",
+    "typescript": "7.0.2"
+  },
+  "overrides": {
+    "effect": "4.1.4"
+  }
+}

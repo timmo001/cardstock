@@ -1,0 +1,31 @@
+{
+  "name": "@timmo001/cardstock-server",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./api": "./src/api.ts",
+    "./local": "./src/local.ts"
+  },
+  "scripts": {
+    "test": "bun test --pass-with-no-tests",
+    "lint": "oxlint .",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@alchemy.run/cloudflare": "2.0.0-beta.87",
+    "@timmo001/groundwork-auth": "0.51.0",
+    "alchemy": "2.0.0-beta.87",
+    "effect": "4.1.4"
+  },
+  "devDependencies": {
+    "@effect/tsgo": "0.69.0",
+    "@oxlint/plugins": "1.93.0",
+    "@timmo001/oxlint-rules": "0.7.1",
+    "@types/bun": "1.4.4",
+    "oxlint": "1.93.0",
+    "oxlint-tsgolint": "7.0.2007",
+    "typescript": "7.0.2"
+  }
+}

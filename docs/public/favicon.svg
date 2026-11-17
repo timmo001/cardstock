@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Cardstock's logo: a greeting card stood open, its front in marker pink
+       and the inside panel a shade darker, with a spark on the front, on
+       the theme's purple-grey tile. The source for the app's icons;
+       docs/src/assets/logo.svg is the same card on an inset tile -->
+  <rect width="64" height="64" rx="14" fill="#221b25"/>
+  <!-- The inside panel, folded back to the left -->
+  <path fill="#b0578a" d="M31 15.5 L15.6 21.8 C14.6 22.2 14 23.1 14 24.2 L14 46.4 C14 48 15.2 48.9 16.6 48.4 L31 43 Z"/>
+  <!-- The front, facing out to the right -->
+  <path fill="#ea74b1" d="M33 15.5 L48.4 21.8 C49.4 22.2 50 23.1 50 24.2 L50 46.4 C50 48 48.8 48.9 47.4 48.4 L33 43 Z"/>
+  <!-- The spark on the front -->
+  <path fill="#fde8f3" d="M41.5 25.5 C42 29.2 42.8 30 46.5 30.5 C42.8 31 42 31.8 41.5 35.5 C41 31.8 40.2 31 36.5 30.5 C40.2 30 41 29.2 41.5 25.5 Z"/>
+</svg>

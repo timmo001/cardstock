@@ -1,0 +1,320 @@
+/* The app's page: the theme's surface and type. */
+html {
+  background: var(--gw-color-surface-default);
+  color: var(--gw-color-text-primary);
+  font-family: var(--gw-font-sans);
+}
+
+body {
+  margin: 0;
+}
+
+/* Hidden means hidden, whatever display an element's own styles give it */
+[hidden] {
+  display: none !important;
+}
+
+.brand {
+  display: inline-flex;
+  gap: var(--gw-space-2);
+  align-items: center;
+  color: var(--gw-color-text-strong);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand img {
+  border-radius: var(--gw-radius-sm, 4px);
+}
+
+/* A card page is only the card: the app's own chrome steps aside */
+body.viewing gw-app-bar,
+body.viewing gw-page {
+  display: none;
+}
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.viewer-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}
+
+.viewer-hint {
+  position: absolute;
+  bottom: max(var(--gw-space-6, 24px), env(safe-area-inset-bottom));
+  margin: 0;
+  color: var(--gw-color-text-secondary);
+  font-size: var(--gw-font-size-sm, 0.875rem);
+  pointer-events: none;
+}
+
+.viewer-mute {
+  position: absolute;
+  top: max(var(--gw-space-4, 16px), env(safe-area-inset-top));
+  right: max(var(--gw-space-4, 16px), env(safe-area-inset-right));
+}
+
+.viewer-edit {
+  position: absolute;
+  top: max(var(--gw-space-4, 16px), env(safe-area-inset-top));
+  left: max(var(--gw-space-4, 16px), env(safe-area-inset-left));
+}
+
+/* Over a picture or video behind the card, the hint reads in light ink */
+.viewer[data-backdrop] .viewer-hint {
+  color: rgb(255 255 255 / 0.85);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+}
+
+.viewer-missing {
+  padding: var(--gw-space-6, 24px);
+}
+
+/* Cards: each card a tile that opens it */
+.cards-list {
+  --gw-grid-min: 14rem;
+}
+
+/* Browse: a filters sidebar beside the cards, grouped by category, each card
+   standing on its rack with a shadow, as in a shop. The sidebar is a quiet
+   band of the page, as Groundwork's surfaces have it, and stays in view as
+   the cards scroll; on a phone it sits above them */
+.browse-layout {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  gap: var(--gw-space-6, 24px);
+  align-items: start;
+}
+
+.browse-sidebar {
+  --gw-filter-inset: var(--gw-space-4, 16px);
+  position: sticky;
+  top: calc(var(--gw-app-bar-height, 56px) + var(--gw-space-3));
+  max-height: calc(
+    100dvh - var(--gw-app-bar-height, 56px) - 2 * var(--gw-space-3)
+  );
+  overflow: hidden auto;
+  padding-inline: var(--gw-space-4, 16px);
+  padding-block-end: var(--gw-space-2);
+  background: var(--gw-color-surface-low);
+  border: var(--gw-border-width, 1px) solid var(--gw-color-border-quiet);
+  border-radius: var(--gw-radius-panel);
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.browse-sidebar-header {
+  display: flex;
+  gap: var(--gw-space-2);
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+}
+
+.browse-sidebar-header h2 {
+  margin: 0;
+  font-size: var(--gw-font-size-m);
+  font-weight: var(--gw-font-weight-strong);
+  color: var(--gw-color-text-strong);
+}
+
+.browse-filters {
+  display: flex;
+  flex-direction: column;
+}
+
+.browse-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-4, 16px);
+  min-width: 0;
+}
+
+.browse-shown {
+  margin: 0;
+  color: var(--gw-color-text-secondary);
+  font-size: var(--gw-font-size-s, 0.875rem);
+}
+
+.browse-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-6, 24px);
+}
+
+.browse-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--gw-space-5, 20px) var(--gw-space-4, 16px);
+  padding-block: var(--gw-space-2) var(--gw-space-3);
+}
+
+.browse-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-2);
+  color: var(--gw-color-text-primary);
+  text-decoration: none;
+  border-radius: var(--gw-radius-sm, 4px);
+  outline-offset: 4px;
+}
+
+.browse-card:focus-visible {
+  outline: 2px solid var(--gw-color-focus);
+}
+
+.browse-front {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 7;
+  background: var(--gw-color-surface-lower);
+  border-radius: 2px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.12),
+    0 8px 18px -6px rgb(0 0 0 / 0.28);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.browse-card:hover .browse-front,
+.browse-card:focus-visible .browse-front {
+  transform: translateY(-4px) rotate(-1deg);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.14),
+    0 16px 28px -8px rgb(0 0 0 / 0.35);
+}
+
+.browse-name {
+  font-size: var(--gw-font-size-sm, 0.875rem);
+  color: var(--gw-color-text-secondary);
+  text-align: center;
+}
+
+@media (width < 50rem) {
+  .browse-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .browse-sidebar {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (width < 40rem) {
+  .browse-shelf {
+    display: flex;
+    gap: var(--gw-space-4, 16px);
+    margin-inline: calc(-1 * var(--gw-space-4, 16px));
+    padding-inline: var(--gw-space-4, 16px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .browse-card {
+    flex: 0 0 9.5rem;
+    scroll-snap-align: start;
+  }
+}
+
+/* A card: the live preview beside the fields on a wide screen, above them
+   on a phone, so the card always has the most room */
+.card-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);
+  gap: var(--gw-space-6, 24px);
+  align-items: start;
+}
+
+.card-preview {
+  position: sticky;
+  top: calc(var(--gw-app-bar-height, 56px) + var(--gw-space-3));
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-3);
+  align-items: center;
+}
+
+.card-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    var(--gw-color-surface-raised),
+    var(--gw-color-surface-lower)
+  );
+  border: var(--gw-border-width, 1px) solid var(--gw-color-border-quiet);
+  border-radius: var(--gw-radius-panel);
+}
+
+.card-stage[data-failed]::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--gw-color-text-secondary);
+  content: "The preview can't draw here";
+}
+
+/* Each repaint lands on a new canvas over the last one */
+.card-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+}
+
+.card-looks {
+  flex-wrap: wrap;
+}
+
+.card-looks > * {
+  flex: 1 1 9rem;
+}
+
+.card-links-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* A pointer to the docs' guide, under the pictures */
+.card-pictures-guide {
+  margin: 0;
+  font-size: var(--gw-font-size-s, 0.875rem);
+  color: var(--gw-color-text-secondary);
+}
+
+.card-pictures-guide a {
+  color: var(--gw-color-link);
+}
+
+.card-links-list gw-copy {
+  max-width: 22rem;
+}
+
+@media (width < 50rem) {
+  .card-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card-preview {
+    position: static;
+  }
+}

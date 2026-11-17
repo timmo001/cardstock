@@ -1,7 +1,7 @@
 /**
  * Playing a card as its link plays it, shared by the viewer and the editor's
- * preview so the two never differ: the card from its first stage, a pulsing
- * tap mark showing where to tap while a tap moves it on, the hint under it
+ * preview so the two never differ: the card from its first stage, a tap
+ * mark rippling where to tap while a tap moves it on, the hint under it
  * for screen readers, Back to the stage before, the card's sounds on the way
  * forward, and the mute button.
  */

@@ -41,8 +41,11 @@ body.viewing gw-page {
   place-items: center;
 }
 
+/* The card fills the screen whatever size its drawing is, so drawing it at
+   the screen's size never feeds back into the screen's layout */
 .viewer-card {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   touch-action: none;
@@ -107,8 +110,9 @@ body.viewing gw-page {
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
 }
 
-/* The tap mark: a hand on a disc in the middle of the card, with a ring
-   pulsing out from it, so it's plain where to tap */
+/* The tap mark: a hand in the middle of the card that taps, and two rings
+   rippling out from its fingertip as it does, so it's plain where to tap.
+   Light ink with a soft shadow reads on a dark card and a pale one alike */
 .player-prompt {
   position: absolute;
   top: 50%;
@@ -117,28 +121,51 @@ body.viewing gw-page {
   place-items: center;
   width: 3.5rem;
   height: 3.5rem;
-  color: var(--gw-color-accent-default, #ea74b1);
-  background: rgb(255 255 255 / 0.92);
-  border-radius: 50%;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 0.28);
+  color: rgb(255 255 255 / 0.95);
   transform: translate(-50%, -50%);
   animation: player-arrive 300ms ease-out both;
 }
 
 .player-prompt svg {
-  width: 1.75rem;
-  height: 1.75rem;
+  position: relative;
+  z-index: 1;
+  width: 2.25rem;
+  height: 2.25rem;
   fill: currentColor;
-  animation: player-tap 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.45));
+  transform-origin: 50% 90%;
+  animation: player-tap 1.8s ease-in-out infinite;
+}
+
+.player-prompt::before,
+.player-prompt::after {
+  position: absolute;
+  /* The fingertip, in the 2.25rem hand centred in the 3.5rem mark */
+  top: 1.3rem;
+  left: 1.64rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1.5px solid rgb(255 255 255 / 0.9);
+  border-radius: 50%;
+  box-shadow:
+    0 0 2px rgb(0 0 0 / 0.25),
+    inset 0 0 2px rgb(0 0 0 / 0.25);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  content: "";
+  animation: player-ripple 1.8s ease-out infinite;
 }
 
 .player-prompt::after {
-  position: absolute;
-  inset: 0;
-  border: 2px solid rgb(255 255 255 / 0.9);
-  border-radius: 50%;
-  content: "";
-  animation: player-ring 1.6s ease-out infinite;
+  animation-delay: 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-prompt svg,
+  .player-prompt::before,
+  .player-prompt::after {
+    animation: none;
+  }
 }
 
 @keyframes player-arrive {
@@ -156,19 +183,28 @@ body.viewing gw-page {
   }
 
   30% {
-    transform: scale(0.86);
+    transform: translateY(3px) scale(0.9);
   }
 }
 
-@keyframes player-ring {
-  0% {
-    opacity: 0.9;
-    transform: scale(1);
+/* Starts as the hand presses down, then spreads and fades like water */
+@keyframes player-ripple {
+  0%,
+  28% {
+    width: 0.5rem;
+    height: 0.5rem;
+    opacity: 0;
   }
 
+  32% {
+    opacity: 0.95;
+  }
+
+  85%,
   100% {
+    width: 5rem;
+    height: 5rem;
     opacity: 0;
-    transform: scale(1.8);
   }
 }
 

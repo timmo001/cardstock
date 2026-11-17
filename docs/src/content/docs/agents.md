@@ -44,7 +44,7 @@ watch the preview change as it works:
 | `make-card`   | Starts over from a ready-made card by id, or Shuffle's pick for an occasion and tone  |
 | `set-words`   | Changes the occasion, title, who it's to, the message and who it's from               |
 | `set-design`  | Changes the design, colourway, effect, size and how it opens                          |
-| `add-picture` | Adds a picture or video by web address to the front, the left or right page, or behind |
+| `add-picture` | Adds a picture or video by web address to the front, left or right page, or behind    |
 | `set-music`   | Sets the music by the track's web address                                             |
 | `save`        | Keeps the card on this device, as Save does                                           |
 | `export`      | Saves it for a chat as a still, MP4 or GIF, as Save for a chat does                   |

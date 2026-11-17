@@ -60,6 +60,7 @@ import {
   GwDialog,
   GwInput,
   GwMenuButton,
+  GwPopover,
   GwSegmented,
   GwSelect,
   GwSwitch,
@@ -96,15 +97,14 @@ const form = page?.querySelector("form.card-form");
 const saveButton = form?.querySelector("gw-button[type='submit']");
 const deleteButton = page?.querySelector(".card-delete");
 const deleteDialog = page?.querySelector(".card-delete-dialog");
-const linksSection = page?.querySelector(".card-links");
 const wholeButton = page?.querySelector(".card-whole-new");
 const wholeDialog = page?.querySelector(".card-whole-dialog");
 const wholeCopy = wholeDialog?.querySelector(".card-whole-copy");
 const exportMenu = page?.querySelector(".card-export");
 const shuffleMenu = page?.querySelector(".card-shuffle");
-const webDialog = page?.querySelector(".card-web-dialog");
-const webUse = webDialog?.querySelector(".card-web-use");
-const webUrl = webDialog?.querySelector("gw-input[name='web-url']");
+const webPopover = page?.querySelector(".card-web-popover");
+const webUse = webPopover?.querySelector(".card-web-use");
+const webUrl = webPopover?.querySelector("gw-input[name='web-url']");
 const backgroundAdd = page?.querySelector(".card-add-background");
 
 /** Whether the back lists the web addresses the card's files load from. */
@@ -444,7 +444,6 @@ const showProblem = (message: string | undefined) => {
 
 const showMissing = (heading: string) => {
   editor?.setAttribute("hidden", "");
-  linksSection?.setAttribute("hidden", "");
   deleteButton?.setAttribute("hidden", "");
   missing?.setAttribute("heading", heading);
   missing?.removeAttribute("hidden");
@@ -662,7 +661,7 @@ const rowOf = (
   media: Media,
   where: string,
   items: readonly MenuItem[],
-  onSelect: (value: string) => void,
+  onSelect: (value: string, menu: HTMLElement) => void,
 ) => {
   const name = describeMedia(media);
 
@@ -681,7 +680,7 @@ const rowOf = (
 
     const value: unknown = event.detail?.value;
 
-    if (isText(value)) onSelect(value);
+    if (isText(value)) onSelect(value, menu);
   });
 
   return h(
@@ -758,7 +757,7 @@ const pictureRow = (list: PictureList, item: Item, index: number) => {
     item.media,
     placeNames[item.on][item.fit],
     [...fits, ...sides, ...order, ...changeItems("picture")],
-    (value) => {
+    (value, menu) => {
       const at = items.indexOf(item);
 
       if (at === -1) return;
@@ -788,7 +787,7 @@ const pictureRow = (list: PictureList, item: Item, index: number) => {
         items[to] = item;
         items[at] = other;
       } else if (value === "change") {
-        askAddress({ list, item });
+        askAddress({ list, item }, menu);
 
         return;
       } else if (value === "remove") {
@@ -814,9 +813,9 @@ const singleRow = (list: "background" | "music", media: Media) =>
         ? "Behind the card, as on the card"
         : "Filling the page behind the card",
     changeItems(list === "music" ? "music" : "background"),
-    (value) => {
+    (value, menu) => {
       if (value === "change") {
-        askAddress({ list });
+        askAddress({ list }, menu);
 
         return;
       }
@@ -876,7 +875,7 @@ const showLists = () => {
   }
 };
 
-/** What the web address dialog fills: a list, and the picture it replaces. */
+/** What the web address popover fills: a list, and the picture it replaces. */
 interface Asking {
   readonly list: ListName;
   readonly item?: Item;
@@ -884,9 +883,12 @@ interface Asking {
 
 let asking: Asking | undefined;
 
-/** Asks for a web address for a list, or to change one already there. */
-const askAddress = (target: Asking) => {
-  if (!(webDialog instanceof GwDialog)) return;
+/**
+ * Asks for a web address for a list, or to change one already there, in a
+ * popover beside the button that asked.
+ */
+const askAddress = (target: Asking, anchor: Element | null | undefined) => {
+  if (!(webPopover instanceof GwPopover)) return;
 
   asking = target;
 
@@ -898,7 +900,7 @@ const askAddress = (target: Asking) => {
     webUrl.error = "";
   }
 
-  webDialog.show();
+  webPopover.show(anchor ?? undefined);
 };
 
 /**
@@ -1139,7 +1141,6 @@ const program = async () => {
 
   showSaved();
   editor?.removeAttribute("hidden");
-  linksSection?.removeAttribute("hidden");
 
   const first = cardOf(start, "Card");
 
@@ -1159,7 +1160,7 @@ const program = async () => {
         (each): each is ListName => each === add.getAttribute("data-list"),
       );
 
-      if (list !== undefined) askAddress({ list });
+      if (list !== undefined) askAddress({ list }, add);
     });
   }
 
@@ -1169,7 +1170,7 @@ const program = async () => {
     const value: unknown = event.detail?.value;
 
     if (value === "web") {
-      askAddress({ list: "background" });
+      askAddress({ list: "background" }, backgroundAdd);
 
       return;
     }
@@ -1188,7 +1189,7 @@ const program = async () => {
 
     if (
       !(webUrl instanceof GwInput) ||
-      !(webDialog instanceof GwDialog) ||
+      !(webPopover instanceof GwPopover) ||
       target === undefined
     ) {
       return;
@@ -1202,7 +1203,7 @@ const program = async () => {
         return;
       }
 
-      webDialog.close("used");
+      webPopover.close("used");
       showProblem(undefined);
       showLists();
       changed();

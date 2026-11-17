@@ -145,16 +145,28 @@
               value="out"
               options='[{"value":"sealed","label":"Envelope"},{"value":"out","label":"Front"},{"value":"open","label":"Inside"}]'
             ></gw-segmented>
-            <gw-menu-button
-              class="card-export"
-              label="Save for a chat"
-              appearance="outlined"
-              items='[{"value":"still","label":"Picture","description":"The front, as a PNG"},{"value":"mp4","label":"Video","description":"The card opening, as an MP4"},{"value":"gif","label":"GIF","description":"The card opening, smaller and looping"}]'
-            ></gw-menu-button>
+            <!-- The two ways the card goes out, together under it -->
+            <gw-row class="card-send" gap="s">
+              <gw-button
+                class="card-whole-new"
+                appearance="outlined"
+                labels="auto"
+                labels-below="22rem"
+                >Card in a link</gw-button
+              >
+              <gw-menu-button
+                class="card-export"
+                label="Save for a chat"
+                appearance="outlined"
+                labels="auto"
+                labels-below="22rem"
+                items='[{"value":"still","label":"Picture","description":"The front, as a PNG"},{"value":"mp4","label":"Video","description":"The card opening, as an MP4"},{"value":"gif","label":"GIF","description":"The card opening, smaller and looping"}]'
+              ></gw-menu-button>
+            </gw-row>
           </div>
-          <!-- The occasion, then a panel for each part of the card: the
-               front, the inside, the page and sound around it, and its
-               looks. One panel opens at a time, and all start closed -->
+          <!-- The occasion, then a panel for each part of the card: its
+               design, the front, the inside, and the background and music
+               around it. One panel opens at a time, and all start closed -->
           <form class="card-form" novalidate>
             <gw-stack>
               <gw-stack class="card-group">
@@ -207,6 +219,7 @@
                           appearance="outlined"
                           size="small"
                           labels="auto"
+                          labels-below="22rem"
                           >Add a picture</gw-button
                         >
                       </div>
@@ -259,6 +272,7 @@
                           appearance="outlined"
                           size="small"
                           labels="auto"
+                          labels-below="22rem"
                           >Add a picture</gw-button
                         >
                       </div>
@@ -285,6 +299,7 @@
                           appearance="outlined"
                           size="small"
                           labels="auto"
+                          labels-below="22rem"
                         ></gw-menu-button>
                       </div>
                       <p class="card-list-none">
@@ -301,6 +316,7 @@
                           appearance="outlined"
                           size="small"
                           labels="auto"
+                          labels-below="22rem"
                           >Add music</gw-button
                         >
                       </div>
@@ -328,19 +344,6 @@
             </gw-stack>
           </form>
         </div>
-        <gw-section class="card-links" heading="Link" hidden>
-          <gw-button
-            slot="actions"
-            class="card-whole-new"
-            appearance="outlined"
-            size="small"
-            >Card in a link</gw-button
-          >
-          <p>
-            The whole card goes in its link, so send that. Its pictures, video
-            and music load from their web addresses.
-          </p>
-        </gw-section>
         <gw-empty-state class="card-missing" hidden>
           <gw-button slot="actions" href="./">See your cards</gw-button>
         </gw-empty-state>
@@ -364,33 +367,34 @@
           <p>
             The whole card is sealed in this link, so nothing is stored. Like a
             shared Drive link, whoever has it can open the card, and it can't be
-            stopped or changed once it's sent.
+            stopped or changed once it's sent. Its pictures, video and music
+            load from their web addresses.
           </p>
           <gw-copy class="card-whole-copy" label="The card's link"></gw-copy>
         </gw-dialog>
-        <gw-dialog class="card-web-dialog" heading="Use a file from the web">
-          <gw-stack gap="m">
-            <p>
-              Paste the public web address of a picture, video or track. It
-              loads from there each time the card opens, so it travels in the
-              card's link.
+        <!-- One field, so it opens beside the button that asked for it -->
+        <gw-popover class="card-web-popover" heading="From a web address">
+          <gw-stack>
+            <p class="card-web-help">
+              The public address of a picture, video or track. The card loads it
+              from there each time it opens, so it travels in its link.
             </p>
             <gw-input
               name="web-url"
               label="Address"
               type="url"
               placeholder="https://"
+              autofocus
             ></gw-input>
           </gw-stack>
           <gw-button
             slot="actions"
-            variant="neutral"
-            appearance="plain"
-            value=""
-            >Cancel</gw-button
+            size="small"
+            class="card-web-use"
+            data-needs-changes
+            >Use it</gw-button
           >
-          <gw-button slot="actions" class="card-web-use">Use it</gw-button>
-        </gw-dialog>
+        </gw-popover>
       </gw-stack>
       <!-- Saving a card for `cardstock export`, at /export#<the card's link> -->
       <gw-stack class="export" hidden>

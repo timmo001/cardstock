@@ -248,9 +248,12 @@ body.viewing gw-page {
   align-items: center;
 }
 
+/* The stage keeps its shape, but never grows past the window under the app
+   bar and its controls, so on a phone on its side it all shows at once */
 .card-stage {
   position: relative;
   width: 100%;
+  max-height: calc(100dvh - var(--gw-app-bar-height, 56px) - 9rem);
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: radial-gradient(
@@ -289,16 +292,12 @@ body.viewing gw-page {
   padding-block: var(--gw-space-2) var(--gw-space-4, 16px);
 }
 
-/* The panels sit as one block, with a line between each */
+/* Each panel stands on its own, with room between them */
 .card-panels {
   display: flex;
   flex-direction: column;
-  border-block: var(--gw-border-width, 1px) solid var(--gw-color-border-quiet);
-}
-
-.card-panel + .card-panel {
-  border-block-start: var(--gw-border-width, 1px) solid
-    var(--gw-color-border-quiet);
+  gap: var(--gw-space-3);
+  margin-block-start: var(--gw-space-2);
 }
 
 /* A list of files: its name and Add on one line, then a row for each */
@@ -417,6 +416,25 @@ body.viewing gw-page {
 
 .card-links-list gw-copy {
   max-width: 22rem;
+}
+
+.card-send {
+  justify-content: center;
+}
+
+/* A phone on its side: smaller gaps, so the preview has the room */
+@media (orientation: landscape) and (height < 500px) {
+  .card-editor {
+    gap: var(--gw-space-3);
+  }
+
+  .card-preview {
+    gap: var(--gw-space-2);
+  }
+
+  .card-stage {
+    max-height: calc(100dvh - var(--gw-app-bar-height, 56px) - 7rem);
+  }
 }
 
 @media (width < 50rem) {

@@ -51,8 +51,9 @@ The app has:
   its back. **Save for a chat** under the preview makes a picture of the
   front (PNG), or a video (MP4) or GIF of the card opening, and shares it on a
   phone or downloads it elsewhere.
-- **Link:** **Card in a link** seals the whole card into its link, stored
-  nowhere, to copy and send; see [Links and privacy](/links-and-privacy).
+- **Sending it:** under the preview, **Card in a link** seals the whole card
+  into its link, stored nowhere, to copy and send (see
+  [Links and privacy](/links-and-privacy)), beside **Save for a chat**.
 - **Settings:** behind the gear in the app bar, beside Auto, Light and Dark:
   whether cards play sound on that device.
 

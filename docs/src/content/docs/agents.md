@@ -43,7 +43,7 @@ watch the preview change as it works:
 | Tool          | What it does                                                                          |
 | ------------- | ------------------------------------------------------------------------------------- |
 | `get-card`    | Reads the card as its spec, with its link                                             |
-| `make-card`   | Starts over from a ready-made card by id, or Shuffle's pick for an occasion and tone  |
+| `make-card`   | Starts over from a ready-made card, a whole card's spec, or Shuffle's pick            |
 | `set-words`   | Changes the occasion, title, who it's to, the message and who it's from               |
 | `set-design`  | Changes the design, colourway, effect, size and how it opens                          |
 | `add-picture` | Adds a picture or video by web address to the front, left or right page, or behind    |

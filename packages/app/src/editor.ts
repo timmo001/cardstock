@@ -11,6 +11,7 @@ import {
   CardId,
   type CardSizeValue,
   cardSizes,
+  decodeCard,
   sizeOf,
   type DesignIdValue,
   designIds,
@@ -19,6 +20,7 @@ import {
   layersOf,
   type Media,
   type MediaId,
+  missingMedia,
   newCardId,
   type OpeningValue,
   openings,
@@ -69,7 +71,7 @@ import {
   h,
   type MenuItem,
 } from "@timmo001/groundwork-ui";
-import { Effect, Exit, Match, Option, Schema, Scope } from "effect";
+import { Effect, Exit, Match, Option, Result, Schema, Scope } from "effect";
 import { cardPictures, deleteCard, findCard, saveCard } from "./card-store.ts";
 import {
   phArrowDown,
@@ -1470,6 +1472,40 @@ const program = async () => {
         : "Couldn't put the card in a link.";
     },
     start: async (input) => {
+      if (input.spec !== undefined) {
+        if (input.template !== undefined) {
+          return "Give a template or a spec, not both.";
+        }
+
+        const decoded = await Effect.runPromise(
+          Effect.result(decodeCard(input.spec)),
+        );
+
+        if (Result.isFailure(decoded)) {
+          return `That isn't a card spec: ${decoded.failure.message}`;
+        }
+
+        const missing = missingMedia(decoded.success);
+
+        if (missing.length > 0) {
+          return `The card names media it doesn't list: ${missing.join(", ")}.`;
+        }
+
+        images = new Map();
+        await startFrom(decoded.success);
+
+        const fields = fieldsOf(decoded.success);
+
+        writeFields(
+          input.occasion === undefined
+            ? fields
+            : { ...fields, occasion: input.occasion },
+        );
+        showChange();
+
+        return undefined;
+      }
+
       const from =
         input.template === undefined
           ? Effect.runSync(

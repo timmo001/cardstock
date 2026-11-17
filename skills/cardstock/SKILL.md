@@ -61,7 +61,7 @@ A link already sent can't change. To change a card, edit its spec and make a new
 
 ## In the browser
 
-The Cardstock web app's card editor offers WebMCP tools that change the card the user is watching: `make-card` (a template id, or an occasion and tone for Shuffle), `set-words`, `set-design`, `add-picture` (`on` front, left, right or background, with `fit`), `set-music`, `save`, `export` (still, mp4 or gif) and `get-card` for the spec and its link. When the user wants to watch the card come together, or to carry on in the editor themselves, use them instead of the CLI, with the same care over the words and pictures. Each answers in words when something isn't right; fix it and call again.
+The Cardstock web app's card editor offers WebMCP tools that change the card the user is watching: `make-card` (a template id, a whole card's `spec` as JSON text with its pictures and music, or an occasion and tone for Shuffle), `set-words`, `set-design`, `add-picture` (`on` front, left, right or background, with `fit`), `set-music`, `save`, `export` (still, mp4 or gif) and `get-card` for the spec and its link. When the user wants to watch the card come together, or to carry on in the editor themselves, use them instead of the CLI, with the same care over the words and pictures. Each answers in words when something isn't right; fix it and call again.
 
 They're there only in a browser that offers WebMCP, either built in (turned on in its flags) or added by an extension, and only while the editor is open:
 

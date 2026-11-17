@@ -33,6 +33,12 @@ const MakeCard = Schema.Struct({
       "A ready-made card to start from, by its id.",
     ),
   ),
+  spec: Schema.optionalKey(
+    described(
+      Schema.String,
+      "A whole card to start from, as its spec's JSON text, such as get-card or the CLI's card read gives. Its pictures and music come with it.",
+    ),
+  ),
   occasion: Schema.optionalKey(
     described(
       Schema.String,
@@ -195,7 +201,7 @@ export const registerEditorTools = (actions: EditorActions) => {
     ),
     tool(
       "make-card",
-      "Starts the card in the editor over: from a ready-made card by its template id, or picked by Shuffle for an occasion and tone. Pictures and music are cleared. The preview shows it at once; nothing is kept until save.",
+      "Starts the card in the editor over: from a ready-made card by its template id, from a whole card's spec, or picked by Shuffle for an occasion and tone. A spec brings its own pictures and music; otherwise they're cleared. The preview shows it at once; nothing is kept until save.",
       MakeCard,
       async (input) =>
         answer(

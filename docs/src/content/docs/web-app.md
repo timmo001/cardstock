@@ -32,7 +32,8 @@ The app has:
   heartfelt or sweet) and design. The filters stay as you left them.
   **Shuffle** starts a new card picked at random.
 - **Card:** a live preview, which plays just as the card's link does and
-  stays where it is while you edit, beside the occasion and four panels, one open at a
+  stays where it is while you edit, with what a tap does next under it and
+  Envelope, Front and Inside to move it between stages, beside the occasion and four panels, one open at a
   time and all closed when the page opens: **Design** (design, colours,
   effect, size and how it opens), **Front** (its title and pictures),
   **Inside** (who it's to, the message, who it's from and pictures) and

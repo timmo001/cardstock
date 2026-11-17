@@ -99,6 +99,7 @@ const problem = page?.querySelector(".card-problem");
 const missing = page?.querySelector(".card-missing");
 const editor = page?.querySelector(".card-editor");
 const stageBox = page?.querySelector(".card-stage");
+const hintBox = page?.querySelector(".card-hint");
 const stagePicker = page?.querySelector(".card-view");
 const form = page?.querySelector("form.card-form");
 const saveButton = form?.querySelector("gw-button[type='submit']");
@@ -588,6 +589,7 @@ const preview = async (card: Card) => {
         images,
         sounds,
         at: wanted,
+        foot: hintBox instanceof HTMLElement ? hintBox : undefined,
         onStage: (stage) => {
           wanted = stage;
           showStage();

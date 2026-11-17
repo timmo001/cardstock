@@ -348,12 +348,24 @@ body.viewing gw-page {
   align-items: center;
 }
 
+/* The preview's hint, under it; it keeps its line when there's nothing to
+   say, so the controls under it never jump. The stage picker does Back's
+   job here */
+.card-hint {
+  min-height: 1.25rem;
+  margin-block: calc(var(--gw-space-2) * -1);
+}
+
+.card-hint .player-back {
+  display: none;
+}
+
 /* The stage keeps its shape, but never grows past the window under the app
    bar and its controls, so on a phone on its side it all shows at once */
 .card-stage {
   position: relative;
   width: 100%;
-  max-height: calc(100dvh - var(--gw-app-bar-height, 56px) - 9rem);
+  max-height: calc(100dvh - var(--gw-app-bar-height, 56px) - 10rem);
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: radial-gradient(
@@ -533,7 +545,7 @@ body.viewing gw-page {
   }
 
   .card-stage {
-    max-height: calc(100dvh - var(--gw-app-bar-height, 56px) - 7rem);
+    max-height: calc(100dvh - var(--gw-app-bar-height, 56px) - 8rem);
   }
 }
 

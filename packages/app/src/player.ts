@@ -57,6 +57,11 @@ export interface PlayOptions {
   readonly at?: CardStage | undefined;
   /** Called as the card reaches each stage, either way. */
   readonly onStage?: (stage: CardStage) => void;
+  /**
+   * Where the hint and Back go instead of over the foot of the card, such as
+   * under an editor's small preview, where they'd cover the card.
+   */
+  readonly foot?: HTMLElement | undefined;
 }
 
 /**
@@ -113,7 +118,9 @@ export const playCard = Effect.fnUntraced(function* (
     "div",
     { class: "player", "data-backdrop": card.background !== undefined },
     prompt,
-    h("div", { class: "player-foot" }, hint, back),
+    options.foot === undefined
+      ? h("div", { class: "player-foot" }, hint, back)
+      : undefined,
     mute,
   );
 
@@ -165,6 +172,10 @@ export const playCard = Effect.fnUntraced(function* (
   if (start === opened || start === "full") sounds?.startMusic();
 
   show(start, quiet);
+
+  // Once it's drawn, a repaint's hint takes the place of the one before it,
+  // which stays till then so the line never blinks empty
+  options.foot?.replaceChildren(hint, back);
 
   back.addEventListener("click", () => {
     view.back();

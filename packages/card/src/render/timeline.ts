@@ -145,3 +145,14 @@ export const nextStage = (
 
   return at === -1 ? last : (order[at + 1] ?? last);
 };
+
+/** The stage before `current` for a card that opens as `opening`, staying at its first. */
+export const previousStage = (
+  current: CardStage,
+  opening: OpeningValue = "card",
+): CardStage => {
+  const order: readonly CardStage[] = stagesFor[opening];
+  const at = order.indexOf(current);
+
+  return at <= 0 ? (order[0] ?? current) : (order[at - 1] ?? current);
+};

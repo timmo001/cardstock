@@ -6,14 +6,25 @@
  */
 import { Effect } from "effect";
 import { buildCardScene, type SceneOptions } from "./scene.ts";
-import { type CardStage, nextStage, stagesFor } from "./timeline.ts";
+import {
+  type CardStage,
+  nextStage,
+  previousStage,
+  stagesFor,
+} from "./timeline.ts";
 import type { Card } from "../schema.ts";
 
 export { RenderError } from "./scene.ts";
 
+/** Which way a card moved to a stage: on, as a tap moves it, or back a step. */
+export type StageDirection = "forward" | "back";
+
 export interface MountOptions extends SceneOptions {
-  /** Called as the card reaches each stage, such as to play a sound. */
-  readonly onStage?: (stage: CardStage) => void;
+  /**
+   * Called as the card reaches each stage, and which way it moved there,
+   * such as to play a sound only on the way forward.
+   */
+  readonly onStage?: (stage: CardStage, direction: StageDirection) => void;
 }
 
 export interface CardView {
@@ -24,6 +35,8 @@ export interface CardView {
   readonly stage: () => CardStage;
   /** Moves to the next stage, as a tap does. */
   readonly advance: () => CardStage;
+  /** Plays back to the stage before, as Back or the left arrow does. */
+  readonly back: () => CardStage;
   /** Jumps straight to a stage, without playing the way there. */
   readonly seek: (stage: CardStage) => void;
   /** Plays to a stage, backwards too, such as an editor showing the inside. */
@@ -104,7 +117,21 @@ export const mountCard = Effect.fnUntraced(function* (
     current = next;
     straighten(() => {
       timeline.tweenTo(next);
-      options.onStage?.(next);
+      options.onStage?.(next, "forward");
+    });
+
+    return current;
+  };
+
+  const back = () => {
+    const before = previousStage(current, opening);
+
+    if (before === current) return current;
+
+    current = before;
+    straighten(() => {
+      timeline.tweenTo(before);
+      options.onStage?.(before, "back");
     });
 
     return current;
@@ -143,8 +170,21 @@ export const mountCard = Effect.fnUntraced(function* (
     if (moved < tapSlop) advance();
   };
 
+  // The canvas owns these keys while it has the focus
   const onKey = (event: KeyboardEvent) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
+    if (event.key === "ArrowLeft" || event.key === "Backspace") {
+      event.preventDefault();
+      back();
+
+      return;
+    }
+
+    if (
+      event.key !== "Enter" &&
+      event.key !== " " &&
+      event.key !== "ArrowRight"
+    )
+      return;
 
     event.preventDefault();
     advance();
@@ -201,6 +241,7 @@ export const mountCard = Effect.fnUntraced(function* (
     stages: order,
     stage: () => current,
     advance,
+    back,
     seek: (next) => {
       if (!ownStage(next)) return;
 

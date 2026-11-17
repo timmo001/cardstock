@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import svgpath from "svgpath";
 
 const names = [
+  "arrow-counter-clockwise",
   "arrow-down",
   "arrow-left",
   "arrow-up",
@@ -18,6 +19,7 @@ const names = [
   "download-simple",
   "envelope-simple",
   "gear",
+  "hand-tap",
   "image",
   "link-simple",
   "magnifying-glass",

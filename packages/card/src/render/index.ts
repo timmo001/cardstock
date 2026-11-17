@@ -12,9 +12,10 @@ export {
   type MountOptions,
   mountCard,
   RenderError,
+  type StageDirection,
 } from "./mount.ts";
 
-export { type CardStage, stages, stagesFor } from "./timeline.ts";
+export { type CardStage, nextStage, stages, stagesFor } from "./timeline.ts";
 
 export { loadVideo } from "./video.ts";
 

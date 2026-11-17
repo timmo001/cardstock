@@ -8,9 +8,12 @@ makes them. Install it from the browser to keep it on your phone or computer.
 
 ## Opening a card
 
-A card's link opens the viewer. Tap the envelope to take the card out, tap
-again to open it, then drag to turn it. Sound starts on the first tap, and
-the mute button remembers your choice on that device. The page around the
+A card's link opens the viewer. A pulsing hand on the card shows where to
+tap, with a line under it saying what the tap does: tap the envelope to take
+the card out, tap again to open it, then drag to turn it. **Back a step**
+plays it back to the stage before, and on a keyboard Enter, Space or the
+right arrow move it on and the left arrow moves it back. Sound starts on the
+first tap, and the mute button remembers your choice on that device. The page around the
 card follows light or dark mode, while the card keeps its own design.
 
 **Edit a copy** at the top opens the card in the editor as a new card of your
@@ -27,7 +30,8 @@ The app has:
   to narrow them by category, occasion, tone (funny, cheeky, punny, dry,
   heartfelt or sweet) and design. The filters stay as you left them.
   **Shuffle** starts a new card picked at random.
-- **Card:** a live preview beside the occasion and four panels, one open at a
+- **Card:** a live preview, which plays just as the card's link does and
+  stays where it is while you edit, beside the occasion and four panels, one open at a
   time and all closed when the page opens: **Design** (design, colours,
   effect, size and how it opens), **Front** (its title and pictures),
   **Inside** (who it's to, the message, who it's from and pictures) and

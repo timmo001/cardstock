@@ -428,16 +428,9 @@
         tabindex="0"
         aria-label="Your card. Tap it, or press Enter, to open it."
       ></canvas>
-      <p class="viewer-hint" aria-live="polite"></p>
-      <gw-button
-        class="viewer-mute"
-        appearance="plain"
-        variant="neutral"
-        labels="hide"
-        toggle
-        hidden
-        >Sound</gw-button
-      >
+      <!-- The player adds the hint, the tap mark, Back and Sound once the
+           card opens -->
+      <p class="viewer-loading" aria-live="polite">Opening your card…</p>
       <gw-button
         class="viewer-edit"
         appearance="plain"

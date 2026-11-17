@@ -48,11 +48,11 @@ import {
   type CardView,
   coloursOf,
   designs,
-  mountCard,
   type Picture,
   showBackdrop,
   stages,
 } from "@timmo001/cardstock-card/render";
+import { type SoundBoard, soundBoard } from "@timmo001/cardstock-card/sounds";
 import {
   DirtyState,
   GwButton,
@@ -84,7 +84,9 @@ import {
   phTrash,
 } from "./icons.ts";
 import { takeCopy } from "./copy.ts";
-import { decodePicture, run, webFile } from "./picture.ts";
+import { decodePicture, run, webBytes, webFile } from "./picture.ts";
+import { playCard } from "./player.ts";
+import { readMuted } from "./sound.ts";
 
 const page = document.querySelector("gw-stack.card");
 const header = page?.querySelector("gw-page-header");
@@ -461,11 +463,66 @@ let shown:
   | undefined;
 
 let generation = 0;
-let wanted: CardStage = "out";
+
+/** The stage the preview is on, kept as it repaints; it starts as a link does. */
+let wanted: CardStage | undefined;
+
 let images: ReadonlyMap<string, Picture> = new Map();
 
 const showStage = () => {
-  if (stagePicker instanceof GwSegmented) stagePicker.value = wanted;
+  if (stagePicker instanceof GwSegmented && wanted !== undefined) {
+    stagePicker.value = wanted;
+  }
+};
+
+/**
+ * The preview's sounds and music, made once for each track rather than for
+ * each repaint, so the music plays on while the words change.
+ */
+let board:
+  | {
+      readonly track: string;
+      readonly sounds: SoundBoard | undefined;
+      readonly scope: Scope.Closeable;
+    }
+  | undefined;
+
+const soundsFor = async () => {
+  const track = music === undefined ? "" : music.id;
+
+  if (board?.track === track) return board.sounds;
+
+  const old = board;
+  const scope = Effect.runSync(Scope.make());
+
+  const bytes =
+    music === undefined
+      ? undefined
+      : await run(
+          webBytes(webAddress(music)).pipe(
+            Effect.map((loaded) => new Uint8Array(loaded).buffer),
+            Effect.orElseSucceed(() => undefined),
+          ),
+        );
+
+  const muted = await Effect.runPromise(readMuted);
+
+  // Sound is a bonus: a browser without Web Audio still gets the preview
+  const made = await Effect.runPromiseExit(
+    Scope.provide(scope)(soundBoard({ music: bytes, muted })),
+  );
+
+  board = {
+    track,
+    sounds: Exit.isSuccess(made) ? made.value : undefined,
+    scope,
+  };
+
+  if (old !== undefined) {
+    await Effect.runPromise(Scope.close(old.scope, Exit.void));
+  }
+
+  return board.sounds;
 };
 
 const stageNames = {
@@ -484,7 +541,7 @@ const showStages = (own: readonly CardStage[]) => {
     label: stageNames[stage],
   }));
 
-  stagePicker.value = wanted;
+  showStage();
   stagePicker.toggleAttribute("hidden", own.length < 2);
 };
 
@@ -517,11 +574,15 @@ const preview = async (card: Card) => {
   stageBox.append(canvas);
 
   const scope = Effect.runSync(Scope.make());
+  const sounds = await soundsFor();
 
+  // It plays as the card's link does, from where it was while it repaints
   const mounted = await Effect.runPromiseExit(
     Scope.provide(scope)(
-      mountCard(canvas, card, {
+      playCard(stageBox, canvas, card, {
         images,
+        sounds,
+        at: wanted,
         onStage: (stage) => {
           wanted = stage;
           showStage();
@@ -543,14 +604,9 @@ const preview = async (card: Card) => {
 
   delete stageBox.dataset["failed"];
 
-  const { stages: own } = mounted.value;
-
-  // A stage this opening doesn't pass through gives way to its front, or its
-  // full view when it has no front
-  if (!own.includes(wanted)) wanted = own.includes("out") ? "out" : "full";
-
-  showStages(own);
-  mounted.value.seek(wanted);
+  // A stage this opening doesn't pass through gives way to its first
+  wanted = mounted.value.stage();
+  showStages(mounted.value.stages);
   showPageBackground(stageBox, backdropOf(card, images));
 
   const old = shown;

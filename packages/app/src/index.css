@@ -49,19 +49,9 @@ body.viewing gw-page {
   outline: none;
 }
 
-.viewer-hint {
-  position: absolute;
-  bottom: max(var(--gw-space-6, 24px), env(safe-area-inset-bottom));
+.viewer-loading {
   margin: 0;
   color: var(--gw-color-text-secondary);
-  font-size: var(--gw-font-size-sm, 0.875rem);
-  pointer-events: none;
-}
-
-.viewer-mute {
-  position: absolute;
-  top: max(var(--gw-space-4, 16px), env(safe-area-inset-top));
-  right: max(var(--gw-space-4, 16px), env(safe-area-inset-right));
 }
 
 .viewer-edit {
@@ -70,10 +60,116 @@ body.viewing gw-page {
   left: max(var(--gw-space-4, 16px), env(safe-area-inset-left));
 }
 
+/* The player, over the card in the viewer and the editor's preview alike:
+   the tap mark in the middle, the hint and Back at the foot, and Sound in
+   the top corner. Only its controls take presses, so the card under it
+   still takes taps and drags */
+.player {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.player gw-button {
+  pointer-events: auto;
+}
+
+.player-foot {
+  position: absolute;
+  inset-inline: 0;
+  bottom: max(var(--gw-space-4, 16px), env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-2);
+  align-items: center;
+}
+
+.player-hint {
+  margin: 0;
+  color: var(--gw-color-text-secondary);
+  font-size: var(--gw-font-size-s, 0.875rem);
+  text-align: center;
+}
+
+.player-hint:empty {
+  display: none;
+}
+
+.player-mute {
+  position: absolute;
+  top: max(var(--gw-space-3), env(safe-area-inset-top));
+  right: max(var(--gw-space-3), env(safe-area-inset-right));
+}
+
 /* Over a picture or video behind the card, the hint reads in light ink */
-.viewer[data-backdrop] .viewer-hint {
+.player[data-backdrop] .player-hint {
   color: rgb(255 255 255 / 0.85);
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+}
+
+/* The tap mark: a hand on a disc in the middle of the card, with a ring
+   pulsing out from it, so it's plain where to tap */
+.player-prompt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  color: var(--gw-color-accent-default, #ea74b1);
+  background: rgb(255 255 255 / 0.92);
+  border-radius: 50%;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.28);
+  transform: translate(-50%, -50%);
+  animation: player-arrive 300ms ease-out both;
+}
+
+.player-prompt svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  fill: currentColor;
+  animation: player-tap 1.6s ease-in-out infinite;
+}
+
+.player-prompt::after {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgb(255 255 255 / 0.9);
+  border-radius: 50%;
+  content: "";
+  animation: player-ring 1.6s ease-out infinite;
+}
+
+@keyframes player-arrive {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+@keyframes player-tap {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+
+  30% {
+    transform: scale(0.86);
+  }
+}
+
+@keyframes player-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
 }
 
 .viewer-missing {

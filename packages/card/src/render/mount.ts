@@ -16,8 +16,11 @@ import type { Card } from "../schema.ts";
 
 export { RenderError } from "./scene.ts";
 
-/** Which way a card moved to a stage: on, as a tap moves it, or back a step. */
-export type StageDirection = "forward" | "back";
+/**
+ * Which way a card moved to a stage: on, as a tap moves it, back a step, or
+ * straight to one picked, as an editor's stage picker does.
+ */
+export type StageDirection = "forward" | "back" | "picked";
 
 export interface MountOptions extends SceneOptions {
   /**
@@ -256,6 +259,7 @@ export const mountCard = Effect.fnUntraced(function* (
       current = next;
       straighten(() => {
         timeline.tweenTo(next);
+        options.onStage?.(next, "picked");
       });
     },
   } satisfies CardView;

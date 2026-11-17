@@ -8,8 +8,9 @@ makes them. Install it from the browser to keep it on your phone or computer.
 
 ## Opening a card
 
-A card's link opens the viewer. A pulsing hand on the card shows where to
-tap, with a line under it saying what the tap does: tap the envelope to take
+A card's link opens the viewer. Once the card has sat for a few seconds, a
+ripple every so often shows where to tap, with a line under it saying what
+the tap does: tap the envelope to take
 the card out, tap again to open it, then drag to turn it. **Back a step**
 plays it back to the stage before, and on a keyboard Enter, Space or the
 right arrow move it on and the left arrow moves it back. Sound starts on the

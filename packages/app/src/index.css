@@ -110,39 +110,21 @@ body.viewing gw-page {
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
 }
 
-/* The tap mark: a hand in the middle of the card that taps, and two rings
-   rippling out from its fingertip as it does, so it's plain where to tap.
-   Light ink with a soft shadow reads on a dark card and a pale one alike */
+/* The tap mark: once the card has sat a while, two rings ripple out from the
+   middle of it every few seconds, like a drop in water, so it's plain where
+   to tap without answering every tap. Light rings with a soft shadow read on
+   a dark card and a pale one alike */
 .player-prompt {
   position: absolute;
   top: 50%;
   left: 50%;
-  display: grid;
-  place-items: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  color: rgb(255 255 255 / 0.95);
-  transform: translate(-50%, -50%);
-  animation: player-arrive 300ms ease-out both;
-}
-
-.player-prompt svg {
-  position: relative;
-  z-index: 1;
-  width: 2.25rem;
-  height: 2.25rem;
-  fill: currentColor;
-  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.45));
-  transform-origin: 50% 90%;
-  animation: player-tap 1.8s ease-in-out infinite;
 }
 
 .player-prompt::before,
 .player-prompt::after {
   position: absolute;
-  /* The fingertip, in the 2.25rem hand centred in the 3.5rem mark */
-  top: 1.3rem;
-  left: 1.64rem;
+  top: 0;
+  left: 0;
   width: 0.5rem;
   height: 0.5rem;
   border: 1.5px solid rgb(255 255 255 / 0.9);
@@ -153,57 +135,43 @@ body.viewing gw-page {
   opacity: 0;
   transform: translate(-50%, -50%);
   content: "";
-  animation: player-ripple 1.8s ease-out infinite;
+  animation: player-ripple 4s ease-out infinite;
 }
 
 .player-prompt::after {
-  animation-delay: 0.25s;
+  animation-delay: 0.3s;
 }
 
+/* Without motion, one still ring marks the spot */
 @media (prefers-reduced-motion: reduce) {
-  .player-prompt svg,
-  .player-prompt::before,
-  .player-prompt::after {
+  .player-prompt::before {
+    width: 3rem;
+    height: 3rem;
+    opacity: 0.8;
     animation: none;
   }
-}
 
-@keyframes player-arrive {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.8);
+  .player-prompt::after {
+    display: none;
   }
 }
 
-@keyframes player-tap {
-  0%,
-  60%,
-  100% {
-    transform: none;
-  }
-
-  30% {
-    transform: translateY(3px) scale(0.9);
-  }
-}
-
-/* Starts as the hand presses down, then spreads and fades like water */
+/* A ripple spreads and fades over the first part of each round, then rests */
 @keyframes player-ripple {
-  0%,
-  28% {
+  0% {
     width: 0.5rem;
     height: 0.5rem;
     opacity: 0;
   }
 
-  32% {
+  4% {
     opacity: 0.95;
   }
 
-  85%,
+  35%,
   100% {
-    width: 5rem;
-    height: 5rem;
+    width: 6rem;
+    height: 6rem;
     opacity: 0;
   }
 }

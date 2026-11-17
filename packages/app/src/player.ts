@@ -1,7 +1,7 @@
 /**
  * Playing a card as its link plays it, shared by the viewer and the editor's
- * preview so the two never differ: the card from its first stage, a tap
- * mark rippling where to tap while a tap moves it on, the hint under it
+ * preview so the two never differ: the card from its first stage, a ripple
+ * where to tap once it's sat a while, the hint under it
  * for screen readers, Back to the stage before, the card's sounds on the way
  * forward, and the mute button.
  */
@@ -18,7 +18,6 @@ import { h } from "@timmo001/groundwork-ui";
 import { Effect } from "effect";
 import {
   phArrowCounterClockwise,
-  phHandTap,
   phSpeakerHigh,
   phSpeakerSlash,
 } from "./icons.ts";
@@ -41,19 +40,11 @@ const hintAt = (stage: CardStage, order: readonly CardStage[]) =>
 /** How long the tap mark waits for a move to settle before it shows again. */
 const settle = 1600;
 
-const svgNamespace = "http://www.w3.org/2000/svg";
-
-/** A Phosphor icon, drawn in the tap mark. */
-const iconOf = (path: string) => {
-  const svg = document.createElementNS(svgNamespace, "svg");
-  const drawn = document.createElementNS(svgNamespace, "path");
-
-  svg.setAttribute("viewBox", "0 0 24 24");
-  drawn.setAttribute("d", path);
-  svg.append(drawn);
-
-  return svg;
-};
+/**
+ * How long the card sits untouched before the tap mark shows, so it's a
+ * reminder rather than an answer to every tap.
+ */
+const quiet = 3000;
 
 export interface PlayOptions {
   readonly images: ReadonlyMap<string, Picture>;
@@ -88,11 +79,11 @@ export const playCard = Effect.fnUntraced(function* (
 
   const hint = h("p", { class: "player-hint", "aria-live": "polite" });
 
-  const prompt = h(
-    "span",
-    { class: "player-prompt", "aria-hidden": "true", hidden: true },
-    iconOf(phHandTap),
-  );
+  const prompt = h("span", {
+    class: "player-prompt",
+    "aria-hidden": "true",
+    hidden: true,
+  });
 
   const back = h(
     "gw-button",
@@ -147,7 +138,7 @@ export const playCard = Effect.fnUntraced(function* (
   const view = yield* mountCard(canvas, card, {
     images: options.images,
     onStage: (stage, direction) => {
-      show(stage, settle);
+      show(stage, settle + quiet);
       options.onStage?.(stage);
 
       if (direction !== "forward") return;
@@ -173,7 +164,7 @@ export const playCard = Effect.fnUntraced(function* (
   // does a card already shown open
   if (start === opened || start === "full") sounds?.startMusic();
 
-  show(start, 600);
+  show(start, quiet);
 
   back.addEventListener("click", () => {
     view.back();
